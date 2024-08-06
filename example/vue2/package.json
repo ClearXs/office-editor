@@ -1,0 +1,35 @@
+{
+  "name": "example-vue2",
+  "private": true,
+  "scripts": {
+    "postinstall": "husky install",
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint --ext .vue,.ts,.js",
+    "lint:fix": "eslint --ext .vue,.ts,.js --fix"
+  },
+  "dependencies": {
+    "@vueuse/core": "^9.13.0",
+    "vue": "^2.7.16",
+    "vue-router": "^3.6.5",
+    "@office-editor/vue2": "workspace:^",
+    "@smallwei/avue": "^2.12.7",
+    "element-ui": "^2.15.1",
+    "axios": "^1.6.8",
+    "js-cookie": "^3.0.5"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^1.2.1",
+    "@iconify/json": "^2.2.186",
+    "@vitejs/plugin-vue2": "^2.3.1",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8.57.0",
+    "husky": "^9.0.11",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "unplugin-auto-import": "^0.17.5",
+    "vite": "^5.1.4",
+    "vue-template-compiler": "^2.7.16",
+    "vue-template-es2015-compiler": "^1.9.1"
+  }
+}

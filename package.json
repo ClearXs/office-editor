@@ -1,0 +1,16 @@
+{
+  "name": "office-editor",
+  "private": true,
+  "version": "0.1.0",
+  "keywords": [],
+  "author": "jiangwei",
+  "description": "在线协作编辑器",
+  "scripts": {
+    "example/vue3": "pnpm run -C example/vue3 dev",
+    "example/react": "pnpm run -C example/react dev",
+    "build:example/react": "pnpm run -C example/react build",
+    "docker:example/react": "pnpm run -C example/react docker",
+    "build:react": "pnpm run -C packages/react rollup",
+    "publish": "pnpm publish -r --no-git-checks --access public"
+  }
+}
