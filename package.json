@@ -1,10 +1,19 @@
 {
   "name": "office-editor",
   "private": true,
-  "version": "0.1.0",
-  "keywords": [],
-  "author": "jiangwei",
+  "keywords": [
+    "vue2",
+    "vue3",
+    "react",
+    "onlyoffice"
+  ],
+  "license": "MIT",
+  "author": "j.x",
   "description": "在线协作编辑器",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ClearXs/office-editor.git"
+  },
   "scripts": {
     "example/vue3": "pnpm run -C example/vue3 dev",
     "example/react": "pnpm run -C example/react dev",
