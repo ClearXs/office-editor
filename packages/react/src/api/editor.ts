@@ -1,7 +1,7 @@
-import { DocConfig } from 'model/config';
+import { DocConfig } from '../model/config';
 import useRequest from '../hook/request';
 import Result from './result';
-import { Mentions } from 'model/mention';
+import { Mentions } from '../model/mention';
 
 export type DocumentEditorConfig = {
   model: DocConfig;

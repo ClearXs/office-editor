@@ -1,22 +1,15 @@
 import useDocApi, { Doc } from '@/api/doc';
-import useFileApi from '@/api/file';
 import { IPage } from '@/api/interface';
-import { InboxOutlined, PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ModalForm, ProFormText, ProTable } from '@ant-design/pro-components';
-import { IDocEditorProps, OfficeEditor } from '@office-editor/react';
-import { useNavigate } from '@umijs/max';
 import {
-  Button,
-  Form,
-  Input,
-  Modal,
-  Space,
-  Spin,
-  Tag,
-  Upload,
-  message,
-} from 'antd';
+  ModalForm,
+  ProFormTextArea,
+  ProTable,
+} from '@ant-design/pro-components';
+import { IEditor, OfficeEditor } from '@office-editor/react';
+import { useNavigate } from '@umijs/max';
+import { Button, Upload, message } from 'antd';
 import Cookies from 'js-cookie';
 import { useRef, useState } from 'react';
 
@@ -32,96 +25,13 @@ export const waitTime = async (time: number = 100) => {
   await waitTimePromise(time);
 };
 
-const DocForm: React.FC<{ destroy: () => void }> = ({ destroy }) => {
-  const docApi = useDocApi();
-
-  const [messageApi, contextHolder] = message.useMessage();
-  const [loading, setLoading] = useState<boolean>(false);
-  const fileApi = useFileApi();
-
-  const [file, setFile] = useState<any[]>();
-
-  return (
-    <Spin spinning={loading}>
-      <Form
-        name="basic"
-        labelCol={{ span: 8 }}
-        wrapperCol={{ span: 16 }}
-        style={{ maxWidth: 600 }}
-        initialValues={{ remember: true }}
-        onFinish={async (value) => {
-          setLoading(true);
-          docApi
-            .saveOrUpdate({ ...value, file: JSON.stringify(file) })
-            .then((res) => {
-              const { code, message } = res;
-              if (code === 200) {
-                messageApi.success(message);
-                destroy?.();
-              } else {
-                messageApi.error(message);
-              }
-            })
-            .finally(() => {
-              setLoading(false);
-            });
-        }}
-        autoComplete="off"
-      >
-        <Form.Item label="文档名称" name="title">
-          <Input />
-        </Form.Item>
-        <Form.Item label="文档标签" name="label">
-          <Input />
-        </Form.Item>
-
-        <Form.Item label="文档">
-          <Upload.Dragger
-            accept=".doc,.docx,.xlsx,.xls,.ppt,.pptx"
-            onChange={(info) => {
-              const { file } = info;
-              if (file.status === 'done') {
-                const { response } = file;
-                setFile([response?.data]);
-              }
-            }}
-            maxCount={1}
-            name="file"
-            action="/api/sys/attachment/upload"
-            headers={{ 'X-AUTHENTICATION': Cookies.get('X-AUTHENTICATION') }}
-          >
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">
-              Click or drag file to this area to upload
-            </p>
-            <p className="ant-upload-hint">
-              Support for a single or bulk upload.
-            </p>
-          </Upload.Dragger>
-        </Form.Item>
-
-        <Form.Item wrapperCol={{ span: 12, offset: 6 }}>
-          <Space>
-            <Button type="primary" htmlType="submit">
-              Submit
-            </Button>
-            <Button htmlType="reset">reset</Button>
-          </Space>
-        </Form.Item>
-      </Form>
-    </Spin>
-  );
-};
-
 export default () => {
   const actionRef = useRef<ActionType>();
 
   const [docId, setDocId] = useState<string>();
   const [show, setShow] = useState<boolean>(false);
 
-  const docEditorRef = useRef<IDocEditorProps | undefined>();
+  const docEditorRef = useRef<IEditor | undefined>();
 
   const defaultPage: IPage<Doc> = {
     current: 1,
@@ -152,31 +62,6 @@ export default () => {
           },
         ],
       },
-    },
-    {
-      disable: true,
-      title: '文件',
-      dataIndex: 'file',
-      valueType: 'image',
-      search: false,
-    },
-    {
-      disable: true,
-      title: '标签',
-      dataIndex: 'label',
-      search: false,
-      renderFormItem: (_, { defaultRender }) => {
-        return defaultRender(_);
-      },
-      render: (_, record) => (
-        <Space>
-          {record.label?.split(',').map(({ name, color }) => (
-            <Tag color={color} key={name}>
-              {name}
-            </Tag>
-          ))}
-        </Space>
-      ),
     },
     {
       title: '创建时间',
@@ -335,21 +220,22 @@ export default () => {
         }}
         dateFormatter="string"
         toolBarRender={() => [
-          <Button
-            key="button"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              const modal = Modal.info({
-                content: <DocForm destroy={modal?.destroy} />,
-                closable: true,
-                footer: null,
-                width: '50%',
-              });
+          <Upload
+            accept=".doc,.docx,.xlsx,.xls,.ppt,.pptx"
+            onChange={(info) => {
+              const { file } = info;
+              if (file.status === 'done') {
+                const { response } = file;
+                setFile([response?.data]);
+              }
             }}
-            type="primary"
+            maxCount={1}
+            name="file"
+            action="/api/office/v1/doc/saves"
+            headers={{ 'X-AUTHENTICATION': Cookies.get('X-AUTHENTICATION') }}
           >
-            新建
-          </Button>,
+            <Button icon={<UploadOutlined />}>上传</Button>
+          </Upload>,
           <ModalForm
             trigger={
               <Button type="primary">
@@ -363,24 +249,17 @@ export default () => {
               document.location.reload();
             }}
           >
-            <ProFormText width="md" name="token" label="token" />
+            <ProFormTextArea name="token" label="token" />
+
+            <p>
+              管理员token：
+              <p>
+                eyJraWQiOiJ0dXJibyBqd3QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ0b2tlbiIsImNyZWRlbnRpYWxzTm9uRXhwaXJlZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6Ly9hbGxpby5jYyIsImF2YXRhciI6Imh0dHA6Ly8xMjcuMC4wLjE6ODYwMC9zeXMvYXR0YWNobWVudC9kb3dubG9hZC8xMTM1NDMxODlfcDBfbWFzdGVyMTIwMC5qcGciLCJ1c2VySWQiOjExNjYwMTA3MjEzOTAwMzQ5NDQsImVuYWJsZWQiOnRydWUsImF1dGhvcml0aWVzIjpbeyJyb2xlSWQiOjExNzQwNDU0NzIyODIzNzgyNDAsInJvbGVDb2RlIjoiYXNkMjEyMSIsInJvbGVOYW1lIjoiYXNkIn0seyJyb2xlSWQiOjExNzc5NzA4ODA5OTU3ODY3NTIsInJvbGVDb2RlIjoiMjEiLCJyb2xlTmFtZSI6IjIxIn0seyJyb2xlSWQiOjExNzc5NzA1MDA5NTgxNTg4NDgsInJvbGVDb2RlIjoiYXNkIiwicm9sZU5hbWUiOiJ3YXNhZCJ9LHsicm9sZUlkIjoxMTc0MDQ1MzUyNzAyMzc3OTg0LCJyb2xlQ29kZSI6ImFzZDIxMjEiLCJyb2xlTmFtZSI6ImFzZCJ9LHsicm9sZUlkIjoxMTcyNDg2MTg2NjE1MTc3MjE2LCJyb2xlQ29kZSI6IjMyIiwicm9sZU5hbWUiOiLnrqHnkIblkZgifSx7InJvbGVJZCI6MTE3NDA0NTUwNDk0ODI3MzE1Miwicm9sZUNvZGUiOiJhc2QyMTIxIiwicm9sZU5hbWUiOiJhc2QifV0sInBhc3N3b3JkIjoiZmVFU29uUmNJc25qZ1hhRnhCVjRBQT09IiwicGhvbmUiOiIxMjMxMTMxMyIsIm5pY2tuYW1lIjoiampqampqamoiLCJ0ZW5hbnRJZCI6MCwiYWNjb3VudE5vbkV4cGlyZWQiOnRydWUsImV4cCI6MTcyMzEwMzAzNCwiaWF0IjoxNzIzMDE2NjM0LCJqdGkiOiIxMWEyYWUwOTA4M2EwMDAwIiwiZW1haWwiOiJqaWFuZ3cxMDI3QGdtYWlsLmNvbSIsImFjY291bnROb25Mb2NrZWQiOnRydWUsInVzZXJuYW1lIjoiYWRtaW4ifQ.tNWTZDVAxDDXLgVWd2RtnlCX2MSabTpsiZWGypdoaMiVzW2d1de2iA76HEvJAtT8mrTI2elHb8yKm6fQtb0CKgGODQeNiBR7vDJ4fygfaub4nn2xEcyGKV2B3vitDHaFixw9pNTHI1Am98vfdA2IfM63h79KmLj_h6rwCO6xy6xS3LgLoPdeJ44qYVgZPbunVCU575B-d8G7RxtCEZqwUmlVGtXXUwmLHRF2dEsOcyWnUHx32v5carUm5Qp-w8ObTuPrAZjBGFTFSfmQYPG5DiQssVPxiM1CRA5vWs-O7I2YbvLeG8e7jFIYZEqPC2Ho_4P3lREX8IXSZfluUfmRNg
+              </p>
+            </p>
           </ModalForm>,
         ]}
       />
-
-      <p>
-        管理员token：
-        <p>
-          eyJraWQiOiJ0dXJibyBqd3QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ0b2tlbiIsImNyZWRlbnRpYWxzTm9uRXhwaXJlZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6Ly9hbGxpby5jYyIsImF2YXRhciI6Imh0dHA6Ly8xMjcuMC4wLjE6ODYwMC9zeXMvYXR0YWNobWVudC9kb3dubG9hZC8xMTM1NDMxODlfcDBfbWFzdGVyMTIwMC5qcGciLCJ1c2VySWQiOjExNjYwMTA3MjEzOTAwMzQ5NDQsImVuYWJsZWQiOnRydWUsImF1dGhvcml0aWVzIjpbeyJyb2xlSWQiOjExNzc5NzA4ODA5OTU3ODY3NTIsInJvbGVDb2RlIjoiMjEiLCJyb2xlTmFtZSI6IjIxIn0seyJyb2xlSWQiOjExNzc5NzA1MDA5NTgxNTg4NDgsInJvbGVDb2RlIjoiYXNkIiwicm9sZU5hbWUiOiJ3YXNhZCJ9LHsicm9sZUlkIjoxMTc0MDQ1MzUyNzAyMzc3OTg0LCJyb2xlQ29kZSI6ImFzZDIxMjEiLCJyb2xlTmFtZSI6ImFzZCJ9LHsicm9sZUlkIjoxMTc0MDQ1NTA0OTQ4MjczMTUyLCJyb2xlQ29kZSI6ImFzZDIxMjEiLCJyb2xlTmFtZSI6ImFzZCJ9LHsicm9sZUlkIjoxMTcyNDg2MTg2NjE1MTc3MjE2LCJyb2xlQ29kZSI6IjMyIiwicm9sZU5hbWUiOiLnrqHnkIblkZgifSx7InJvbGVJZCI6MTE3NDA0NTQ3MjI4MjM3ODI0MCwicm9sZUNvZGUiOiJhc2QyMTIxIiwicm9sZU5hbWUiOiJhc2QifV0sInBhc3N3b3JkIjoiZmVFU29uUmNJc25qZ1hhRnhCVjRBQT09IiwicGhvbmUiOiIxMjMxMTMxMyIsIm5pY2tuYW1lIjoiampqampqamoiLCJ0ZW5hbnRJZCI6MCwiYWNjb3VudE5vbkV4cGlyZWQiOnRydWUsImV4cCI6MTcxOTA0NDkyNiwiaWF0IjoxNzE4OTU4NTI2LCJqdGkiOiIxMTY2MzU5NTA5NzYwMDAwIiwiZW1haWwiOiJqaWFuZ3cxMDI3QGdtYWlsLmNvbSIsImFjY291bnROb25Mb2NrZWQiOnRydWUsInVzZXJuYW1lIjoiYWRtaW4ifQ.bw8hJsP7iW25AXFG3eKfJuSsvnuCaPiprq6G8XgFtC2uUdU636dK7shHt3WE6QWSeuMC06x1dAuGYThYX6MhUSSkzJhd4oNCwCuSPkMRi-xtOuA1AdLr-e6u5JvYKQqaVfLTs7mASOzdI61SRtE91he0f-nlWej6cdiPWXs_6QFtCTulXySV4XJ3J79eYmuCXfEV4Npt6WIGKlpo8yzJQtZp4McDzFDeRHOLw381_638BELU6mbu-G-G2ORHCzWS6lPbtfVERSYmrUaIesu25Ztlpk6JGMh6_CH0rJhr6SIsY2QH4v_JLkWvPVA-XS8MutP6I0Mf_0iE5BUykCMLYQ
-        </p>
-      </p>
-      <p>
-        cy66token：
-        <p>
-          eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjdXJyZW50VGltZU1pbGxpcyI6IjE3MTU3ODU3MzM0MjQiLCJleHAiOjM3NzE1Nzg3NTMzLCJhY2NvdW50IjoiY3MzeSJ9.Rliuez4zKrRb3eRAZl69KihphlvL0KoOYoppQxXNIcM
-        </p>
-      </p>
-
       {show && docId !== undefined && (
         <div style={{ height: '100vh', width: '100vw' }}>
           <OfficeEditor

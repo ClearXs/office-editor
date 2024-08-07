@@ -1,6 +1,5 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse, Method } from 'axios';
-import { useEffect } from 'react';
-import { getToken } from 'util/token';
+import { getToken } from '../util/token';
 
 export interface InternalRequest {
   request: (
@@ -26,31 +25,6 @@ export interface InternalRequest {
     path: string,
     params?: Record<string, any>
   ) => Promise<AxiosResponse<any, any>>;
-}
-
-// 创建内部remote
-const internalRemote = axios.create();
-internalRemote.defaults.baseURL = '/';
-internalRemote.defaults.timeout = 100000;
-internalRemote.defaults.headers.post['Content-Type'] = 'application/json';
-
-// 请求拦截器
-internalRemote.interceptors.request.use((config) => {
-  config.headers['X-AUTHENTICATION'] = getToken() || '';
-  return config;
-});
-
-function handleSuccess(res: AxiosResponse): Promise<AxiosResponse> {
-  return Promise.resolve(res);
-}
-
-/**
- * response错误处理，包含消息提示
- * @param err
- */
-function handleResError(err: AxiosError, errorValue?: any) {
-  console.error(err);
-  return Promise.resolve(errorValue || err.response);
 }
 
 class InternalRequestImpl implements InternalRequest {
@@ -109,23 +83,41 @@ class InternalRequestImpl implements InternalRequest {
 }
 
 const useRequest = () => {
-  useEffect(() => {
-    internalRemote.interceptors.response.clear();
-    internalRemote.interceptors.response.use(
-      (res: AxiosResponse) => {
-        return handleSuccess(res);
-      },
-      (err: Error) => {
-        if (err instanceof AxiosError) {
-          return handleResError(err, undefined);
-        } else {
-          return Promise.reject(err);
-        }
+  const instance = axios.create();
+  instance.defaults.baseURL = '/';
+  instance.defaults.timeout = 100000;
+  instance.defaults.headers.post['Content-Type'] = 'application/json';
+  // 请求拦截器
+  instance.interceptors.request.use((config) => {
+    config.headers['X-AUTHENTICATION'] = getToken() || '';
+    return config;
+  });
+  instance.interceptors.response.use(
+    (res: AxiosResponse) => {
+      return handleSuccess(res);
+    },
+    (err: Error) => {
+      if (err instanceof AxiosError) {
+        return handleResError(err, undefined);
+      } else {
+        return Promise.reject(err);
       }
-    );
-  }, []);
+    }
+  );
 
-  return new InternalRequestImpl(internalRemote);
+  function handleSuccess(res: AxiosResponse): Promise<AxiosResponse> {
+    return Promise.resolve(res);
+  }
+
+  /**
+   * response错误处理，包含消息提示
+   * @param err
+   */
+  function handleResError(err: AxiosError, errorValue?: any) {
+    console.error(err);
+    return Promise.resolve(errorValue || err.response);
+  }
+  return new InternalRequestImpl(instance);
 };
 
 export const createRequest = () => {

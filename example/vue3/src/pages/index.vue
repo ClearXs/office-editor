@@ -2,56 +2,24 @@
   <div class="p-10">
     <n-space vertical :size="12">
       <n-space>
-        <n-button type="primary" @click="showForm = true">新建</n-button>
+        <n-upload
+          action="/api/office/v1/doc/saves"
+          :headers="{
+            'X-AUTHENTICATION': Cookies.get('X-AUTHENTICATION'),
+          }"
+          accept=".doc,.docx,.ppt,.pptx,.xls,.xlsx"
+        >
+          <n-button>上传文件</n-button>
+        </n-upload>
         <n-button @click="showTokenForm = true">设置token</n-button>
       </n-space>
       <n-data-table
         :loading="loading"
         :columns="columns"
-        :data="data"
+        :data="docList"
         :pagination="pagination"
       />
     </n-space>
-    <n-modal v-model:show="showForm">
-      <n-card
-        style="width: 600px"
-        title="新建"
-        :bordered="false"
-        size="huge"
-        role="dialog"
-        aria-modal="true"
-      >
-        <n-form ref="formRef" :model="formValues" :rules="formRules">
-          <n-form-item label="文档名称" path="title">
-            <n-input v-model:value="formValues.title" placeholder="" />
-          </n-form-item>
-          <n-form-item label="文件" path="file">
-            <n-upload
-              v-model:value="formValues.file"
-              accept=".xls,.xlsx,.doc,.docx"
-              action="/api/sys/attachment/upload"
-              :max="1"
-              :show-file-list="true"
-              :on-finish="uploadFinish"
-              :on-remove="uploadRemove"
-              :on-change="uploadChange"
-            >
-              <n-button>上传文件</n-button>
-            </n-upload>
-          </n-form-item>
-          <n-form-item>
-            <n-space>
-              <n-button @click="save" type="primary" :loading="formLoading">
-                确定
-              </n-button>
-              <n-button @click="showForm = false" :loading="formLoading">
-                取消
-              </n-button>
-            </n-space>
-          </n-form-item>
-        </n-form>
-      </n-card>
-    </n-modal>
     <n-modal v-model:show="showTokenForm">
       <n-card
         class="w-[600px]"
@@ -84,13 +52,7 @@
             <div>
               管理员:
               <p>
-                eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjdXJyZW50VGltZU1pbGxpcyI6IjE3MjE4OTA0NTczNzUiLCJleHAiOjM3NzIxODkyMjU3LCJhY2NvdW50IjoiYWRtaW4ifQ.DTeX1eTAdZF8jjdZIi5j-w4T3RxV4fHhXf1fw7EELXM
-              </p>
-            </div>
-            <div>
-              cy66:
-              <p>
-                eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjdXJyZW50VGltZU1pbGxpcyI6IjE3MTU3ODU3MzM0MjQiLCJleHAiOjM3NzE1Nzg3NTMzLCJhY2NvdW50IjoiY3MzeSJ9.Rliuez4zKrRb3eRAZl69KihphlvL0KoOYoppQxXNIcM
+                eyJraWQiOiJ0dXJibyBqd3QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ0b2tlbiIsImNyZWRlbnRpYWxzTm9uRXhwaXJlZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6Ly9hbGxpby5jYyIsImF2YXRhciI6Imh0dHA6Ly8xMjcuMC4wLjE6ODYwMC9zeXMvYXR0YWNobWVudC9kb3dubG9hZC8xMTM1NDMxODlfcDBfbWFzdGVyMTIwMC5qcGciLCJ1c2VySWQiOjExNjYwMTA3MjEzOTAwMzQ5NDQsImVuYWJsZWQiOnRydWUsImF1dGhvcml0aWVzIjpbeyJyb2xlSWQiOjExNzQwNDU0NzIyODIzNzgyNDAsInJvbGVDb2RlIjoiYXNkMjEyMSIsInJvbGVOYW1lIjoiYXNkIn0seyJyb2xlSWQiOjExNzc5NzA4ODA5OTU3ODY3NTIsInJvbGVDb2RlIjoiMjEiLCJyb2xlTmFtZSI6IjIxIn0seyJyb2xlSWQiOjExNzc5NzA1MDA5NTgxNTg4NDgsInJvbGVDb2RlIjoiYXNkIiwicm9sZU5hbWUiOiJ3YXNhZCJ9LHsicm9sZUlkIjoxMTc0MDQ1MzUyNzAyMzc3OTg0LCJyb2xlQ29kZSI6ImFzZDIxMjEiLCJyb2xlTmFtZSI6ImFzZCJ9LHsicm9sZUlkIjoxMTcyNDg2MTg2NjE1MTc3MjE2LCJyb2xlQ29kZSI6IjMyIiwicm9sZU5hbWUiOiLnrqHnkIblkZgifSx7InJvbGVJZCI6MTE3NDA0NTUwNDk0ODI3MzE1Miwicm9sZUNvZGUiOiJhc2QyMTIxIiwicm9sZU5hbWUiOiJhc2QifV0sInBhc3N3b3JkIjoiZmVFU29uUmNJc25qZ1hhRnhCVjRBQT09IiwicGhvbmUiOiIxMjMxMTMxMyIsIm5pY2tuYW1lIjoiampqampqamoiLCJ0ZW5hbnRJZCI6MCwiYWNjb3VudE5vbkV4cGlyZWQiOnRydWUsImV4cCI6MTcyMzEwMzAzNCwiaWF0IjoxNzIzMDE2NjM0LCJqdGkiOiIxMWEyYWUwOTA4M2EwMDAwIiwiZW1haWwiOiJqaWFuZ3cxMDI3QGdtYWlsLmNvbSIsImFjY291bnROb25Mb2NrZWQiOnRydWUsInVzZXJuYW1lIjoiYWRtaW4ifQ.tNWTZDVAxDDXLgVWd2RtnlCX2MSabTpsiZWGypdoaMiVzW2d1de2iA76HEvJAtT8mrTI2elHb8yKm6fQtb0CKgGODQeNiBR7vDJ4fygfaub4nn2xEcyGKV2B3vitDHaFixw9pNTHI1Am98vfdA2IfM63h79KmLj_h6rwCO6xy6xS3LgLoPdeJ44qYVgZPbunVCU575B-d8G7RxtCEZqwUmlVGtXXUwmLHRF2dEsOcyWnUHx32v5carUm5Qp-w8ObTuPrAZjBGFTFSfmQYPG5DiQssVPxiM1CRA5vWs-O7I2YbvLeG8e7jFIYZEqPC2Ho_4P3lREX8IXSZfluUfmRNg
               </p>
             </div>
           </n-space>
@@ -134,7 +96,7 @@ const formLoading = ref<Boolean>(false);
 
 const docApi = useDocApi();
 const messageApi = useMessage();
-const data = ref<Doc[]>([]);
+const docList = ref<Doc[]>([]);
 const show = ref<Boolean>(false);
 const selectDoc = ref<Doc>();
 const docFile = ref<Object>();
@@ -203,7 +165,7 @@ const columns = ref<DataTableColumns<Doc>>([
                 onPositiveClick: () => {
                   deleteDialog.loading = true;
                   docApi
-                    .deleteById(rowData.id)
+                    .deleteBatchIds(rowData.id)
                     .then((res) => {
                       const { code, message } = res;
                       if (code === 200) {
@@ -318,7 +280,7 @@ const save = () => {
     if (errors === undefined) {
       formLoading.value = true;
       docApi
-        .save({
+        .saveOrUpdate({
           title: formValues.value.title,
           file: JSON.stringify([docFile]),
         })
@@ -353,8 +315,7 @@ const setToken = () => {
   formTokenRef.value?.validate((errors) => {
     if (errors === undefined) {
       const { token } = formTokenValue.value;
-      Cookies.set('Access-Token', token);
-      Cookies.set('accessToken', token);
+      Cookies.set('X-AUTHENTICATION', token);
       messageApi.success('修改成功');
       document.location.reload();
     }
@@ -368,16 +329,15 @@ const onDocumentReady = (editor: IEditor) => {
 onMounted(() => {
   loading.value = true;
   docApi
-    .selectPage({
+    .page({
       current: pagination.value.page,
       size: pagination.value.pageSize,
     })
     .then((res) => {
-      const { code, result, message } = res;
+      const { code, data, message } = res;
       if (code === 200) {
-        const docList = result.records;
-        data.value = docList!;
-        pagination.value.itemCount = result.total;
+        docList.value = data.records;
+        pagination.value.itemCount = data.total;
       } else {
         messageApi.error(message);
       }

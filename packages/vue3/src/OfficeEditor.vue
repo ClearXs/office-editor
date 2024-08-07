@@ -32,18 +32,18 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from 'vue'
-import { IOfficeEditorProps } from './interface'
-import { DocumentEditor } from '@onlyoffice/document-editor-vue'
-import { DocumentEditorConfig, useEditorApi } from './api/editor'
-import useDocApi from './api/doc'
-import { type IEditor } from './model/config'
-import { useNotification, Notifications } from '@kyvg/vue3-notification'
+import { onMounted, onUnmounted, ref } from 'vue';
+import { IOfficeEditorProps } from './interface';
+import { DocumentEditor } from '@onlyoffice/document-editor-vue';
+import { DocumentEditorConfig, useEditorApi } from './api/editor';
+import useDocApi from './api/doc';
+import { type IEditor } from './model/config';
+import { useNotification, Notifications } from '@kyvg/vue3-notification';
 
-const { notify } = useNotification()
+const { notify } = useNotification();
 
-const editorApi = useEditorApi()
-const docApi = useDocApi()
+const editorApi = useEditorApi();
+const docApi = useDocApi();
 
 const props = withDefaults(defineProps<IOfficeEditorProps>(), {
   width: '100%',
@@ -60,7 +60,7 @@ const props = withDefaults(defineProps<IOfficeEditorProps>(), {
     hideNotes: false,
     zoom: 100,
   },
-})
+});
 
 const {
   docId,
@@ -89,29 +89,29 @@ const {
   onRequestRestore,
   onDocumentStateChange,
   onDocumentBeforeDestroy,
-} = props
+} = props;
 
-const docEditorRef = ref<IEditor | undefined>()
+const docEditorRef = ref<IEditor | undefined>();
 
-const documentConfigRef = ref<DocumentEditorConfig | undefined>()
+const documentConfigRef = ref<DocumentEditorConfig | undefined>();
 
 onMounted(() => {
-  loadDocumentConfig()
-})
+  loadDocumentConfig();
+});
 
 onUnmounted(() => {
-  triggerDocumentBeforeDestroy()
-})
+  triggerDocumentBeforeDestroy();
+});
 
 const loadDocumentConfig = () => {
   editorApi
     .editor(docId, action, type)
     .then((res) => {
-      const { code, result, message } = res
+      const { code, data, message } = res;
       if (code === 200) {
-        const documentConfig = { ...result }
-        const docConfig = { ...documentConfig.model }
-        const editorConfig = docConfig.editorConfig || {}
+        const documentConfig = { ...data };
+        const docConfig = { ...documentConfig.model };
+        const editorConfig = docConfig.editorConfig || {};
         editorConfig.customization = {
           ...(editorConfig?.customization || {}),
           ...config,
@@ -119,282 +119,282 @@ const loadDocumentConfig = () => {
             config?.logo !== undefined
               ? config.logo
               : editorConfig.customization?.logo,
-        }
-        docConfig.editorConfig = editorConfig
-        console.log('load editor config is: ', documentConfig)
-        documentConfigRef.value = documentConfig
+        };
+        docConfig['editorConfig'] = editorConfig;
+        console.log('load editor config is: ', documentConfig);
+        documentConfigRef.value = documentConfig;
       } else {
-        notify({ type: 'error', text: message })
+        notify({ type: 'error', text: message });
       }
     })
     .catch((err) => {
-      console.error('Failed to get document config', err)
-    })
-}
+      console.error('Failed to get document config', err);
+    });
+};
 
 const loadHistoryList = () => {
   docApi
     .getHistory(docId)
     .then((res) => {
-      const { code, result, message } = res
+      const { code, data, message } = res;
       if (code === 200) {
-        docEditorRef.value?.refreshHistory?.(result)
+        docEditorRef.value?.refreshHistory?.(data);
       } else {
-        notify({ type: 'error', text: message })
+        notify({ type: 'error', text: message });
       }
     })
     .catch((err) => {
-      console.log('Failed to load history.', err)
-      notify({ type: 'error', text: 'Failed load history.' })
-    })
-}
+      console.log('Failed to load history.', err);
+      notify({ type: 'error', text: 'Failed load history.' });
+    });
+};
 
 const loadHistoryData = (version: number) => {
   docApi
     .getHistoryData(docId, version)
     .then((res) => {
-      const { code, result, message } = res
+      const { code, data, message } = res;
       if (code === 200) {
-        docEditorRef.value?.setHistoryData?.(result)
+        docEditorRef.value?.setHistoryData?.(data);
       } else {
-        notify({ type: 'error', text: message })
+        notify({ type: 'error', text: message });
       }
     })
     .catch((err) => {
-      console.error('Failed load history data.', err)
-      notify({ type: 'error', text: 'Failed load history data.' })
-    })
-}
+      console.error('Failed load history data.', err);
+      notify({ type: 'error', text: 'Failed load history data.' });
+    });
+};
 
 // ------------------------- trigger method -------------------------
 
 const triggerRequestRename = (e: Record<string, any>) => {
-  printEvent('onRequestRename', e)
+  printEvent('onRequestRename', e);
   docApi
     .rename(docId, { newfilename: e.data })
     .then()
     .catch((err) => {
-      console.error('Failed rename doc', err)
+      console.error('Failed rename doc', err);
     })
     .finally(() => {
-      onRequestRename?.(e)
-    })
-}
+      onRequestRename?.(e);
+    });
+};
 
 const triggerDocumentReady = () => {
-  printEvent('onDocumentReady')
-  const docEditor: IEditor = window.DocEditor?.instances[docId]
+  printEvent('onDocumentReady');
+  const docEditor: IEditor = window.DocEditor?.instances[docId];
   if (docEditor) {
     docEditor.triggerForceSave = (callback) => {
-      printEvent('triggerForceSave')
+      printEvent('triggerForceSave');
       docApi
         .forceSave(docId)
         .then((res) => {
-          const { result, code } = res
-          if (code === 200 && result) {
-            console.log('force save success')
+          const { data, code } = res;
+          if (code === 200 && data) {
+            console.log('force save success');
           } else {
-            console.error('Failed force save, the result is', res)
+            console.error('Failed force save, the result is', res);
           }
-          callback?.(result, undefined)
+          callback?.(data, undefined);
         })
         .catch((err) => {
-          callback?.(false, undefined)
-          console.error('Failed force save.', err)
-        })
-    }
+          callback?.(false, undefined);
+          console.error('Failed force save.', err);
+        });
+    };
 
     docEditor.triggerKickout = (userIds, callback) => {
-      printEvent('triggerKickout')
+      printEvent('triggerKickout');
       docApi
         .kickout(docId, userIds)
         .then((res) => {
-          const { code, result } = res
-          if (code === 200 && result) {
-            console.log('kickout success')
+          const { code, data } = res;
+          if (code === 200 && data) {
+            console.log('kickout success');
           } else {
-            console.error('Failed kickout, the result is', res)
+            console.error('Failed kickout, the result is', res);
           }
-          callback?.(result, undefined)
+          callback?.(data, undefined);
         })
         .catch((err) => {
-          console.error('Failed kickout.', err)
-          callback?.(false, err)
-        })
-    }
+          console.error('Failed kickout.', err);
+          callback?.(false, err);
+        });
+    };
 
     docEditor.triggerKickoutOthers = (callback) => {
-      printEvent('triggerKickoutOthers')
+      printEvent('triggerKickoutOthers');
       docApi
         .kickoutAll(docId)
         .then((res) => {
-          const { code, result } = res
-          if (code === 200 && result) {
-            console.log('kickout others success')
+          const { code, data } = res;
+          if (code === 200 && data) {
+            console.log('kickout others success');
           } else {
-            console.error('Failed kickout others, the result is', res)
+            console.error('Failed kickout others, the result is', res);
           }
-          callback?.(result, undefined)
+          callback?.(data, undefined);
         })
         .catch((err) => {
-          console.error('Failed kickout others.', err)
-          callback?.(false, err)
-        })
-    }
+          console.error('Failed kickout others.', err);
+          callback?.(false, err);
+        });
+    };
 
     docEditor.triggerKickoutAll = (callback) => {
-      printEvent('triggerKickoutAll')
+      printEvent('triggerKickoutAll');
       docApi
         .kickoutAll(docId)
         .then((res) => {
-          const { code, result } = res
-          if (code === 200 && result) {
-            console.log('kickout all success')
+          const { code, data } = res;
+          if (code === 200 && data) {
+            console.log('kickout all success');
           } else {
-            console.error('Failed kickout all, the result is', res)
+            console.error('Failed kickout all, the result is', res);
           }
-          callback?.(result, undefined)
+          callback?.(data, undefined);
         })
         .catch((err) => {
-          console.error('Failed kickout all.', err)
-          callback?.(false, err)
-        })
-    }
+          console.error('Failed kickout all.', err);
+          callback?.(false, err);
+        });
+    };
 
     docEditor.onlineDocUser = (callback) => {
-      printEvent('onlineDocUser')
+      printEvent('onlineDocUser');
       docApi
         .getOnlineDocUser(docId)
         .then((res) => {
-          const { code, result } = res
+          const { code, data } = res;
           if (code === 200) {
-            console.log('get online doc user success')
+            console.log('get online doc user success');
           } else {
-            console.error('Failed get online doc user , the result is', res)
+            console.error('Failed get online doc user , the result is', res);
           }
-          callback?.(result || [], undefined)
+          callback?.(data || [], undefined);
         })
         .catch((err) => {
-          console.error('Failed get online doc user .', err)
-          callback?.([], err)
-        })
-    }
-    onDocumentReady?.(docEditor)
+          console.error('Failed get online doc user .', err);
+          callback?.([], err);
+        });
+    };
+    onDocumentReady?.(docEditor);
   }
-  docEditorRef.value = docEditor
-}
+  docEditorRef.value = docEditor;
+};
 
 const triggerLoadComponentError = (error: number, errorDescription: string) => {
-  printEvent('onLoadComponentError', error, errorDescription)
-  onLoadComponentError?.(error, errorDescription)
-}
+  printEvent('onLoadComponentError', error, errorDescription);
+  onLoadComponentError?.(error, errorDescription);
+};
 
 const triggerRequestSharingSettings = (e: Record<string, any>) => {
-  printEvent('onRequestSharingSettings', e)
-  onRequestSharingSettings?.(e)
-}
+  printEvent('onRequestSharingSettings', e);
+  onRequestSharingSettings?.(e);
+};
 
 const triggerMakeActionLink = (e: Record<string, any>) => {
-  printEvent('onMakeActionLink', e)
-  onMakeActionLink?.(e)
-}
+  printEvent('onMakeActionLink', e);
+  onMakeActionLink?.(e);
+};
 
 const triggerRequestInsertImage = (e: Record<string, any>) => {
-  printEvent('onRequestInsertImage', e)
-  onRequestInsertImage?.(e)
-}
+  printEvent('onRequestInsertImage', e);
+  onRequestInsertImage?.(e);
+};
 
 const triggerRequestMailMergeRecipients = (e: Record<string, any>) => {
-  printEvent('onRequestMailMergeRecipients', e)
-  onRequestMailMergeRecipients?.(e)
-}
+  printEvent('onRequestMailMergeRecipients', e);
+  onRequestMailMergeRecipients?.(e);
+};
 
 const triggerRequestCompareFile = (e: Record<string, any>) => {
-  printEvent('onRequestCompareFile', e)
-  onRequestCompareFile?.(e)
-}
+  printEvent('onRequestCompareFile', e);
+  onRequestCompareFile?.(e);
+};
 
 const triggerRequestEditRights = (e: Record<string, any>) => {
-  printEvent('onRequestEditRights', e)
-  onRequestEditRights?.(e)
-}
+  printEvent('onRequestEditRights', e);
+  onRequestEditRights?.(e);
+};
 
 const triggerDocumentBeforeDestroy = () => {
-  printEvent('onDocumentBeforeDestroy')
-  onDocumentBeforeDestroy?.()
-}
+  printEvent('onDocumentBeforeDestroy');
+  onDocumentBeforeDestroy?.();
+};
 
 const triggerRequestHistoryData = (e: Record<string, any>) => {
-  printEvent('onRequestHistoryData', e)
-  const version = e.data
-  loadHistoryData(version)
-  onRequestHistoryData?.(version)
-}
+  printEvent('onRequestHistoryData', e);
+  const version = e.data;
+  loadHistoryData(version);
+  onRequestHistoryData?.(version);
+};
 
 const triggerMetaChange = (e: Record<string, any>) => {
-  printEvent('onMetaChange', e)
-  onMetaChange?.(e)
-}
+  printEvent('onMetaChange', e);
+  onMetaChange?.(e);
+};
 
 const triggerDocumentStateChange = (e: Record<string, any>) => {
-  printEvent('onDocumentStateChange', e)
-  onDocumentStateChange?.(e)
-}
+  printEvent('onDocumentStateChange', e);
+  onDocumentStateChange?.(e);
+};
 
 const triggerRequestHistory = (e: Record<string, any>) => {
-  printEvent('onRequestHistory', e)
-  loadHistoryList()
-  onRequestHistory?.()
-}
+  printEvent('onRequestHistory', e);
+  loadHistoryList();
+  onRequestHistory?.();
+};
 
 const triggerRequestRestore = (e: Record<string, any>) => {
-  printEvent('onRequestRestore', e)
-  const { version } = e.data
+  printEvent('onRequestRestore', e);
+  const { version } = e.data;
   docApi
     .restore(docId, version)
     .then((res) => {
-      const { code, success, message } = res
-      if (code === 200 && success) {
+      const { code, message } = res;
+      if (code === 200) {
         // load history
-        loadHistoryList()
+        loadHistoryList();
       } else {
-        notify({ type: 'error', text: message })
+        notify({ type: 'error', text: message });
       }
     })
     .catch((err) => {
-      console.error('Failed restore document version', err)
+      console.error('Failed restore document version', err);
     })
     .finally(() => {
-      onRequestRestore?.(e)
-    })
-}
+      onRequestRestore?.(e);
+    });
+};
 
 const triggerInfo = (e: Record<string, any>) => {
-  printEvent('onInfo', e)
-  onInfo?.(e)
-}
+  printEvent('onInfo', e);
+  onInfo?.(e);
+};
 
 const triggerWarning = (e: Record<string, any>) => {
-  printEvent('onWarning', e)
-  onWarning?.(e)
-}
+  printEvent('onWarning', e);
+  onWarning?.(e);
+};
 
 const triggerError = (e: Record<string, any>) => {
-  printEvent('onError', e)
-  onError?.(e)
-}
+  printEvent('onError', e);
+  onError?.(e);
+};
 
 const triggerRequestHistoryClose = (e: Record<string, any>) => {
-  printEvent('onRequestHistoryClose', e)
-  document.location.reload()
-  onRequestHistoryClose?.()
-}
+  printEvent('onRequestHistoryClose', e);
+  document.location.reload();
+  onRequestHistoryClose?.();
+};
 
 const printEvent = (
   event: keyof IOfficeEditorProps | keyof IEditor,
   ...args: any
 ) => {
   printLog &&
-    console.log('document trigger event: %s,', event, 'args is: ', ...args)
-}
+    console.log('document trigger event: %s,', event, 'args is: ', ...args);
+};
 </script>

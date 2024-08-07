@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts">
-import loadScript from '../util/loadScript'
+import loadScript from '../util/loadScript';
 
 export default {
   name: 'DocumentEditor',
@@ -59,65 +59,65 @@ export default {
     events_onRequestSelectDocument: Function,
   },
   mounted() {
-    let url = this.documentServerUrl
-    if (!url.endsWith('/')) url += '/'
+    let url = this.documentServerUrl;
+    if (!url.endsWith('/')) url += '/';
 
-    const docApiUrl = `${url}web-apps/apps/api/documents/api.js`
+    const docApiUrl = `${url}web-apps/apps/api/documents/api.js`;
     loadScript(docApiUrl, 'onlyoffice-api-script')
       .then(() => this.onLoad())
       .catch(() => {
-        this.onError(-2)
-      })
+        this.onError(-2);
+      });
   },
   beforeDestroy() {
-    const id = this.id || ''
+    const id = this.id || '';
     if (window?.DocEditor?.instances[id]) {
-      window.DocEditor.instances[id].destroyEditor()
-      window.DocEditor.instances[id] = undefined
+      window.DocEditor.instances[id].destroyEditor();
+      window.DocEditor.instances[id] = undefined;
     }
   },
   watch: {
     config: {
       handler: function (newVal, oldVal) {
-        this.onChangeProps()
+        this.onChangeProps();
       },
       deep: true,
     },
     document_fileType: function (newVal, oldVal) {
-      this.onChangeProps()
+      this.onChangeProps();
     },
     document_title: function (newVal, oldVal) {
-      this.onChangeProps()
+      this.onChangeProps();
     },
     documentType: function (newVal, oldVal) {
-      this.onChangeProps()
+      this.onChangeProps();
     },
     editorConfig_lang: function (newVal, oldVal) {
-      this.onChangeProps()
+      this.onChangeProps();
     },
     height: function (newVal, oldVal) {
-      this.onChangeProps()
+      this.onChangeProps();
     },
     type: function (newVal, oldVal) {
-      this.onChangeProps()
+      this.onChangeProps();
     },
     width: function (newVal, oldVal) {
-      this.onChangeProps()
+      this.onChangeProps();
     },
   },
   methods: {
     onLoad() {
       try {
-        const id = this.id || ''
+        const id = this.id || '';
 
-        if (!window.DocsAPI) this.onError(-3)
+        if (!window.DocsAPI) this.onError(-3);
         if (window?.DocEditor?.instances[id]) {
-          console.log('Skip loading. Instance already exists', id)
-          return
+          console.log('Skip loading. Instance already exists', id);
+          return;
         }
 
         if (!window?.DocEditor?.instances) {
-          window.DocEditor = { instances: {} }
+          window.DocEditor = { instances: {} };
         }
 
         let initConfig = Object.assign(
@@ -160,51 +160,51 @@ export default {
             width: this.width,
           },
           this.config || {}
-        )
+        );
 
-        const editor = window.DocsAPI.DocEditor(id, initConfig)
-        window.DocEditor.instances[id] = editor
+        const editor = window.DocsAPI.DocEditor(id, initConfig);
+        window.DocEditor.instances[id] = editor;
       } catch (err) {
-        console.error(err)
-        this.onError(-1)
+        console.error(err);
+        this.onError(-1);
       }
     },
     onError(errorCode) {
-      let message
+      let message;
 
       switch (errorCode) {
         case -2:
-          message = 'Error load DocsAPI from ' + this.documentServerUrl
-          break
+          message = 'Error load DocsAPI from ' + this.documentServerUrl;
+          break;
         case -3:
-          message = 'DocsAPI is not defined'
-          break
+          message = 'DocsAPI is not defined';
+          break;
         default:
-          message = 'Unknown error loading component'
-          errorCode = -1
+          message = 'Unknown error loading component';
+          errorCode = -1;
       }
 
       if (typeof this.onLoadComponentError == 'undefined') {
-        console.error(message)
+        console.error(message);
       } else {
-        this.onLoadComponentError(errorCode, message)
+        this.onLoadComponentError(errorCode, message);
       }
     },
     onAppReady() {
-      const id = this.id || ''
-      this.events_onAppReady(window.DocEditor?.instances[id])
+      const id = this.id || '';
+      this.events_onAppReady(window.DocEditor?.instances[id]);
     },
     onChangeProps() {
-      const id = this.id || ''
+      const id = this.id || '';
 
       if (window?.DocEditor?.instances[id]) {
-        window.DocEditor.instances[id].destroyEditor()
-        window.DocEditor.instances[id] = undefined
+        window.DocEditor.instances[id].destroyEditor();
+        window.DocEditor.instances[id] = undefined;
 
-        console.log('Important props have been changed. Load new Editor.')
-        this.onLoad()
+        console.log('Important props have been changed. Load new Editor.');
+        this.onLoad();
       }
     },
   },
-}
+};
 </script>

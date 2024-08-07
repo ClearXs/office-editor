@@ -15,7 +15,7 @@ export default defineConfig({
   },
   proxy: {
     '/api': {
-      target: 'http://localhost:8600',
+      target: 'http://localhost:8700',
       changeOrigin: true,
       pathRewrite: { '^/api': '' },
     },

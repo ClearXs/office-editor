@@ -1,4 +1,17 @@
-import { OnlineDocUser as OnlineDocUser$1 } from 'api/doc';
+type OnlineDocUser = {
+    /**
+     * 用户id
+     */
+    userId: string;
+    /**
+     * 用户名称
+     */
+    userName: string;
+    /**
+     * 文档key
+     */
+    docKey: string;
+};
 
 type DocConfig = {
     documentType?: string;
@@ -214,18 +227,17 @@ type DocConfig = {
         onWarning?: (event: object) => void;
     };
 };
-type IDocEditorProps = {
+type IEditor = {
     /**
      * 创建连接器以与外部的文本文档、电子表格、演示文稿和可填写表单进行交互。
-  
      */
     createConnector: Function;
     /**
-     * 刷新缓存数据
+     * 刷新历史数据
      */
     refreshHistory: Function;
     /**
-     * 设置缓存数据
+     * 设置历史数据
      */
     setHistoryData: Function;
     /**
@@ -255,11 +267,26 @@ type IDocEditorProps = {
     /**
      * 获取当前正在编辑在线的用户
      */
-    onlineDocUser: (callback?: (docUserList: OnlineDocUser$1[], err?: Error) => void) => void;
+    onlineDocUser: (callback?: (docUserList: OnlineDocUser[], err?: Error) => void) => void;
 };
 
 type EditorAction = 'edit' | 'review' | 'view' | 'embedded' | 'filter' | 'comment' | 'chat' | 'fillForms' | 'blockcontent';
 type EditorType = 'desktop' | 'mobile' | 'embedded';
+type Config = {
+    logo?: Logo;
+    plugins?: boolean;
+    integrationMode?: 'embed';
+    spellcheck?: boolean;
+    unit?: 'cm' | 'pt' | 'inch';
+    hideNotes?: boolean;
+    zoom?: number;
+};
+type Logo = {
+    image?: string;
+    imageDark?: string;
+    imageEmbedded?: string;
+    url?: string;
+};
 /**
  * 文档办公编辑器参数，组装自onlyoffice
  * @see https://api.onlyoffice.com/zh/editors/react
@@ -292,26 +319,13 @@ type IOfficeEditorProps = {
     /**
      * 编辑器配置
      */
-    config?: {
-        logo?: {
-            image?: string;
-            imageDark?: string;
-            imageEmbedded?: string;
-            url?: string;
-        };
-        plugins?: boolean;
-        integrationMode?: 'embed';
-        spellcheck?: boolean;
-        unit?: 'cm' | 'pt' | 'inch';
-        hideNotes?: boolean;
-        zoom?: number;
-    };
+    config?: Config;
     /**
      * 将文档加载到文档编辑器时调用的函数。
      *
-     * @param docEditor
+     * @param editor
      */
-    onDocumentReady?: (docEditor: IDocEditorProps) => void;
+    onDocumentReady?: (editor: IEditor) => void;
     /**
      * 加载组件时发生错误时调用的函数。
      *
@@ -326,7 +340,7 @@ type IOfficeEditorProps = {
      */
     onMetaChange?: (meta: any) => void;
     /**
-     * 应用程序打开文件时调用的函数。
+     * info信息调用的函数
      *
      * @param info
      */
@@ -417,19 +431,4 @@ type IOfficeEditorProps = {
 
 declare const OfficeEditor: React.FC<IOfficeEditorProps>;
 
-type OnlineDocUser = {
-    /**
-     * 用户id
-     */
-    userId: string;
-    /**
-     * 用户名称
-     */
-    userName: string;
-    /**
-     * 文档key
-     */
-    docKey: string;
-};
-
-export { type DocConfig, type EditorAction, type EditorType, type IDocEditorProps, type IOfficeEditorProps, OfficeEditor, type OnlineDocUser };
+export { type Config, type DocConfig, type EditorAction, type EditorType, type IEditor, type IOfficeEditorProps, type Logo, OfficeEditor, type OnlineDocUser };

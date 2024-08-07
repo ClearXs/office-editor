@@ -1,5 +1,5 @@
 import useRequest from './request';
-import {
+import type {
   Api,
   GeneralParams,
   IPage,
@@ -7,7 +7,7 @@ import {
   RemoteQueryParam,
   Term,
 } from './interface';
-import Result from './result';
+import type { Result } from './result';
 
 const useApi = <T extends Model>(modelPath: string): Api<T> => {
   const request = useRequest();

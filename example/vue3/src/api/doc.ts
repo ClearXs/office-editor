@@ -1,6 +1,6 @@
 import useRequest from './request';
 import useApi from './api';
-import { Api, Model } from './interface';
+import type { Api, Model } from './interface';
 
 export type Doc = Model & {
   /**

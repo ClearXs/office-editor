@@ -48,11 +48,7 @@
       <div>
         管理员:
         <p>
-          eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjdXJyZW50VGltZU1pbGxpcyI6IjE3MjE4OTA0NTczNzUiLCJleHAiOjM3NzIxODkyMjU3LCJhY2NvdW50IjoiYWRtaW4ifQ.DTeX1eTAdZF8jjdZIi5j-w4T3RxV4fHhXf1fw7EELXM
-        </p>
-        cy66:
-        <p>
-          eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjdXJyZW50VGltZU1pbGxpcyI6IjE3MTU3ODU3MzM0MjQiLCJleHAiOjM3NzE1Nzg3NTMzLCJhY2NvdW50IjoiY3MzeSJ9.Rliuez4zKrRb3eRAZl69KihphlvL0KoOYoppQxXNIcM
+          eyJraWQiOiJ0dXJibyBqd3QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ0b2tlbiIsImNyZWRlbnRpYWxzTm9uRXhwaXJlZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6Ly9hbGxpby5jYyIsImF2YXRhciI6Imh0dHA6Ly8xMjcuMC4wLjE6ODYwMC9zeXMvYXR0YWNobWVudC9kb3dubG9hZC8xMTM1NDMxODlfcDBfbWFzdGVyMTIwMC5qcGciLCJ1c2VySWQiOjExNjYwMTA3MjEzOTAwMzQ5NDQsImVuYWJsZWQiOnRydWUsImF1dGhvcml0aWVzIjpbeyJyb2xlSWQiOjExNzc5NzA1MDA5NTgxNTg4NDgsInJvbGVDb2RlIjoiYXNkIiwicm9sZU5hbWUiOiJ3YXNhZCJ9LHsicm9sZUlkIjoxMTcyNDg2MTg2NjE1MTc3MjE2LCJyb2xlQ29kZSI6IjMyIiwicm9sZU5hbWUiOiLnrqHnkIblkZgifSx7InJvbGVJZCI6MTE3Nzk3MDg4MDk5NTc4Njc1Miwicm9sZUNvZGUiOiIyMSIsInJvbGVOYW1lIjoiMjEifSx7InJvbGVJZCI6MTE3NDA0NTM1MjcwMjM3Nzk4NCwicm9sZUNvZGUiOiJhc2QyMTIxIiwicm9sZU5hbWUiOiJhc2QifSx7InJvbGVJZCI6MTE3NDA0NTQ3MjI4MjM3ODI0MCwicm9sZUNvZGUiOiJhc2QyMTIxIiwicm9sZU5hbWUiOiJhc2QifSx7InJvbGVJZCI6MTE3NDA0NTUwNDk0ODI3MzE1Miwicm9sZUNvZGUiOiJhc2QyMTIxIiwicm9sZU5hbWUiOiJhc2QifV0sInBhc3N3b3JkIjoiZmVFU29uUmNJc25qZ1hhRnhCVjRBQT09IiwicGhvbmUiOiIxMjMxMTMxMyIsIm5pY2tuYW1lIjoiampqampqamoiLCJ0ZW5hbnRJZCI6MCwiYWNjb3VudE5vbkV4cGlyZWQiOnRydWUsImV4cCI6MTcyMzEwMjcyOCwiaWF0IjoxNzIzMDE2MzI4LCJqdGkiOiIxMWEyYWNkZTBhMTAwMDAwIiwiZW1haWwiOiJqaWFuZ3cxMDI3QGdtYWlsLmNvbSIsImFjY291bnROb25Mb2NrZWQiOnRydWUsInVzZXJuYW1lIjoiYWRtaW4ifQ.Cb85ax0u_ralrAITEhs6pJLQWTbUfvG_G0Kkh139-K7vIS4Nz2gMqKEnJv5Gtn4d_FXNyAb8-F4ZDDQasARbB5j0iviHTbaPBz_d5RISeGpULttjO1rIylnES8REenUGV0B3a7FjTJjz7vYbiT9urZ8pToyzndEc508XVOm5SPYc2WcsxQCAF5yb1VBlnbMA4o6yD2pbxCsdBBWHKLm4p1kBSaL80Hu5ZZkPPiuP0GRbuyUCsvFLTOVQso6E5jSDeXrp6S5OOKgsm6QelkMYxWzLBIEQyQ_GqkGlbrvBefVcXteZyTlshKIEe5ytgRumhsrFXrzZJL5equWsTa7qsA
         </p>
       </div>
     </el-dialog>
@@ -73,7 +69,7 @@
 
 <script lang="ts">
 import useDocApi, { Doc } from '@/api/doc';
-import { type IEditor, OfficeEditor } from '@office-editor/vue2';
+import { type IEditor, OfficeEditor } from '@office-editor/vue2/src';
 import Cookies from 'js-cookie';
 import { PropType } from 'vue';
 
@@ -158,10 +154,10 @@ export default {
 
   methods: {
     load() {
-      docApi.selectList({}).then((res) => {
-        const { code, result, message } = res;
+      docApi.list({}).then((res) => {
+        const { code, data, message } = res;
         if (code === 200) {
-          this.data = result;
+          this.data = data;
         } else {
           this.$message.error({ message: message });
         }
@@ -169,10 +165,10 @@ export default {
     },
     save(row, done, loading) {
       docApi
-        .save({ ...row, file: JSON.stringify([this.file]) })
+        .saveOrUpdate({ ...row, file: JSON.stringify([this.file]) })
         .then((res) => {
-          const { success, message } = res;
-          if (success) {
+          const { code, message } = res;
+          if (code === 200) {
             this.$message({ type: 'success', message });
             done();
             this.load();
@@ -192,7 +188,7 @@ export default {
       this.file = undefined;
     },
     rowDel(row: Doc) {
-      docApi.deleteById(row.id).then((res) => {
+      docApi.deleteBatchIds(row.id).then((res) => {
         const { code, message } = res;
         if (code === 200) {
           this.$message({ type: 'success', message });
@@ -203,8 +199,7 @@ export default {
       });
     },
     setToken({ token }, done) {
-      Cookies.set('Access-Token', token);
-      Cookies.set('accessToken', token);
+      Cookies.set('X-AUTHENTICATION', token);
       this.$message.success('修改成功');
       done();
       document.location.reload();

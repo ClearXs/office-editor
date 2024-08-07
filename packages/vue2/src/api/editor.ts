@@ -1,10 +1,10 @@
-import { DocConfig } from 'model/config';
-import useRequest from '../hook/request';
+import { IEditor } from '../model/config';
+import useRequest from './request';
 import Result from './result';
-import { Mentions } from 'model/mention';
+import { Mentions } from '../model/mention';
 
 export type DocumentEditorConfig = {
-  model: DocConfig;
+  model: IEditor;
   fileHistory: string[];
   documentServerUrl: string;
   docserviceApiUrl: string;

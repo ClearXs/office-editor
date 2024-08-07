@@ -1,4 +1,4 @@
-import useRequest from '../hook/request';
+import useRequest from './request';
 import useApi from './api';
 import { Api, Model } from './interface';
 import Result from './result';

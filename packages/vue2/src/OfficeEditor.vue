@@ -31,12 +31,12 @@
 </template>
 
 <script lang="ts">
-import DocumentEditor from './components/DocumentEditor.vue'
-import { useEditorApi } from './api/editor'
-import useDocApi from './api/doc'
+import DocumentEditor from './components/DocumentEditor.vue';
+import { useEditorApi } from './api/editor';
+import useDocApi from './api/doc';
 
-const editorApi = useEditorApi()
-const docApi = useDocApi()
+const editorApi = useEditorApi();
+const docApi = useDocApi();
 
 export default {
   name: 'office-editor',
@@ -143,15 +143,15 @@ export default {
     return {
       documentConfig: undefined,
       docEditor: undefined,
-    }
+    };
   },
 
   mounted() {
-    this.loadDocumentConfig()
+    this.loadDocumentConfig();
   },
 
   destroyed() {
-    this.triggerDocumentBeforeDestroy()
+    this.triggerDocumentBeforeDestroy();
   },
 
   methods: {
@@ -159,11 +159,11 @@ export default {
       editorApi
         .editor(this.docId, this.action, this.type)
         .then((res) => {
-          const { code, result, message } = res
+          const { code, result, message } = res;
           if (code === 200) {
-            const documentConfig = { ...result }
-            const docConfig = { ...documentConfig.model }
-            const editorConfig = docConfig.editorConfig || {}
+            const documentConfig = { ...result };
+            const docConfig = { ...documentConfig.model };
+            const editorConfig = docConfig.editorConfig || {};
             editorConfig.customization = {
               ...(editorConfig?.customization || {}),
               ...this.config,
@@ -171,281 +171,284 @@ export default {
                 this.config?.logo !== undefined
                   ? this.config.logo
                   : editorConfig.customization?.logo,
-            }
-            docConfig.editorConfig = editorConfig
-            console.log('load editor config is: ', documentConfig)
-            this.documentConfig = documentConfig
+            };
+            docConfig.editorConfig = editorConfig;
+            console.log('load editor config is: ', documentConfig);
+            this.documentConfig = documentConfig;
           } else {
-            this.$notify({ type: 'error', text: message })
+            this.$notify({ type: 'error', text: message });
           }
         })
         .catch((err) => {
-          console.error('Failed to get document config', err)
-        })
+          console.error('Failed to get document config', err);
+        });
     },
 
     loadHistoryList() {
       docApi
         .getHistory(this.docId)
         .then((res) => {
-          const { code, result, message } = res
+          const { code, result, message } = res;
           if (code === 200) {
-            this.docEditor?.refreshHistory?.(result)
+            this.docEditor?.refreshHistory?.(result);
           } else {
-            this.$notify({ type: 'error', text: message })
+            this.$notify({ type: 'error', text: message });
           }
         })
         .catch((err) => {
-          console.log('Failed to load history.', err)
-          this.$notify({ type: 'error', text: 'Failed load history.' })
-        })
+          console.log('Failed to load history.', err);
+          this.$notify({ type: 'error', text: 'Failed load history.' });
+        });
     },
 
     loadHistoryData(version) {
       docApi
         .getHistoryData(this.docId, version)
         .then((res) => {
-          const { code, result, message } = res
+          const { code, result, message } = res;
           if (code === 200) {
-            this.docEditor?.setHistoryData?.(result)
+            this.docEditor?.setHistoryData?.(result);
           } else {
-            this.$notify({ type: 'error', text: message })
+            this.$notify({ type: 'error', text: message });
           }
         })
         .catch((err) => {
-          console.error('Failed load history data.', err)
-          this.$notify({ type: 'error', text: 'Failed load history data.' })
-        })
+          console.error('Failed load history data.', err);
+          this.$notify({ type: 'error', text: 'Failed load history data.' });
+        });
     },
 
     // ------------------------- trigger method -------------------------
 
     triggerRequestRename(e) {
-      this.printEvent('onRequestRename', e)
+      this.printEvent('onRequestRename', e);
       docApi
         .rename(this.docId, { newfilename: e.data })
         .then()
         .catch((err) => {
-          console.error('Failed rename doc', err)
+          console.error('Failed rename doc', err);
         })
         .finally(() => {
-          this.onRequestRename?.(e)
-        })
+          this.onRequestRename?.(e);
+        });
     },
 
     triggerDocumentReady() {
-      this.printEvent('onDocumentReady')
-      const docEditor = window.DocEditor?.instances[this.docId]
+      this.printEvent('onDocumentReady');
+      const docEditor = window.DocEditor?.instances[this.docId];
       if (docEditor) {
         docEditor.triggerForceSave = (callback) => {
-          this.printEvent('triggerForceSave')
+          this.printEvent('triggerForceSave');
           docApi
             .forceSave(this.docId)
             .then((res) => {
-              const { result, code } = res
+              const { result, code } = res;
               if (code === 200 && result) {
-                console.log('force save success')
+                console.log('force save success');
               } else {
-                console.error('Failed force save, the result is', res)
+                console.error('Failed force save, the result is', res);
               }
-              callback?.(result, undefined)
+              callback?.(result, undefined);
             })
             .catch((err) => {
-              callback?.(false, undefined)
-              console.error('Failed force save.', err)
-            })
-        }
+              callback?.(false, undefined);
+              console.error('Failed force save.', err);
+            });
+        };
 
         docEditor.triggerKickout = (userIds, callback) => {
-          this.printEvent('triggerKickout')
+          this.printEvent('triggerKickout');
           docApi
             .kickout(this.docId, userIds)
             .then((res) => {
-              const { code, result } = res
+              const { code, result } = res;
               if (code === 200 && result) {
-                console.log('kickout success')
+                console.log('kickout success');
               } else {
-                console.error('Failed kickout, the result is', res)
+                console.error('Failed kickout, the result is', res);
               }
-              callback?.(result, undefined)
+              callback?.(result, undefined);
             })
             .catch((err) => {
-              console.error('Failed kickout.', err)
-              callback?.(false, err)
-            })
-        }
+              console.error('Failed kickout.', err);
+              callback?.(false, err);
+            });
+        };
 
         docEditor.triggerKickoutOthers = (callback) => {
-          this.printEvent('triggerKickoutOthers')
+          this.printEvent('triggerKickoutOthers');
           docApi
             .kickoutAll(this.docId)
             .then((res) => {
-              const { code, result } = res
+              const { code, result } = res;
               if (code === 200 && result) {
-                console.log('kickout others success')
+                console.log('kickout others success');
               } else {
-                console.error('Failed kickout others, the result is', res)
+                console.error('Failed kickout others, the result is', res);
               }
-              callback?.(result, undefined)
+              callback?.(result, undefined);
             })
             .catch((err) => {
-              console.error('Failed kickout others.', err)
-              callback?.(false, err)
-            })
-        }
+              console.error('Failed kickout others.', err);
+              callback?.(false, err);
+            });
+        };
 
         docEditor.triggerKickoutAll = (callback) => {
-          this.printEvent('triggerKickoutAll')
+          this.printEvent('triggerKickoutAll');
           docApi
             .kickoutAll(this.docId)
             .then((res) => {
-              const { code, result } = res
+              const { code, result } = res;
               if (code === 200 && result) {
-                console.log('kickout all success')
+                console.log('kickout all success');
               } else {
-                console.error('Failed kickout all, the result is', res)
+                console.error('Failed kickout all, the result is', res);
               }
-              callback?.(result, undefined)
+              callback?.(result, undefined);
             })
             .catch((err) => {
-              console.error('Failed kickout all.', err)
-              callback?.(false, err)
-            })
-        }
+              console.error('Failed kickout all.', err);
+              callback?.(false, err);
+            });
+        };
 
         docEditor.onlineDocUser = (callback) => {
-          this.printEvent('onlineDocUser')
+          this.printEvent('onlineDocUser');
           docApi
             .getOnlineDocUser(this.docId)
             .then((res) => {
-              const { code, result } = res
+              const { code, result } = res;
               if (code === 200) {
-                console.log('get online doc user success')
+                console.log('get online doc user success');
               } else {
-                console.error('Failed get online doc user , the result is', res)
+                console.error(
+                  'Failed get online doc user , the result is',
+                  res
+                );
               }
-              callback?.(result || [], undefined)
+              callback?.(result || [], undefined);
             })
             .catch((err) => {
-              console.error('Failed get online doc user .', err)
-              callback?.([], err)
-            })
-        }
-        this.onDocumentReady?.(docEditor)
+              console.error('Failed get online doc user .', err);
+              callback?.([], err);
+            });
+        };
+        this.onDocumentReady?.(docEditor);
       }
-      this.docEditor = docEditor
+      this.docEditor = docEditor;
     },
 
     triggerLoadComponentError(error, errorDescription) {
-      this.printEvent('onLoadComponentError', error, errorDescription)
-      this.onLoadComponentError?.(error, errorDescription)
+      this.printEvent('onLoadComponentError', error, errorDescription);
+      this.onLoadComponentError?.(error, errorDescription);
     },
 
     triggerRequestSharingSettings(e) {
-      this.printEvent('onRequestSharingSettings', e)
-      this.onRequestSharingSettings?.(e)
+      this.printEvent('onRequestSharingSettings', e);
+      this.onRequestSharingSettings?.(e);
     },
 
     triggerMakeActionLink(e) {
-      this.printEvent('onMakeActionLink', e)
-      this.onMakeActionLink?.(e)
+      this.printEvent('onMakeActionLink', e);
+      this.onMakeActionLink?.(e);
     },
 
     triggerRequestInsertImage(e) {
-      this.printEvent('onRequestInsertImage', e)
-      this.onRequestInsertImage?.(e)
+      this.printEvent('onRequestInsertImage', e);
+      this.onRequestInsertImage?.(e);
     },
 
     triggerRequestMailMergeRecipients(e) {
-      this.printEvent('onRequestMailMergeRecipients', e)
-      this.onRequestMailMergeRecipients?.(e)
+      this.printEvent('onRequestMailMergeRecipients', e);
+      this.onRequestMailMergeRecipients?.(e);
     },
 
     triggerRequestCompareFile(e) {
-      this.printEvent('onRequestCompareFile', e)
-      this.onRequestCompareFile?.(e)
+      this.printEvent('onRequestCompareFile', e);
+      this.onRequestCompareFile?.(e);
     },
 
     triggerRequestEditRights(e) {
-      this.printEvent('onRequestEditRights', e)
-      this.onRequestEditRights?.(e)
+      this.printEvent('onRequestEditRights', e);
+      this.onRequestEditRights?.(e);
     },
 
     triggerDocumentBeforeDestroy() {
-      this.printEvent('onDocumentBeforeDestroy')
-      this.onDocumentBeforeDestroy?.()
+      this.printEvent('onDocumentBeforeDestroy');
+      this.onDocumentBeforeDestroy?.();
     },
 
     triggerRequestHistoryData(e) {
-      this.printEvent('onRequestHistoryData', e)
-      const version = e.data
-      this.loadHistoryData(version)
-      this.onRequestHistoryData?.(version)
+      this.printEvent('onRequestHistoryData', e);
+      const version = e.data;
+      this.loadHistoryData(version);
+      this.onRequestHistoryData?.(version);
     },
 
     triggerMetaChange(e) {
-      this.printEvent('onMetaChange', e)
-      this.onMetaChange?.(e)
+      this.printEvent('onMetaChange', e);
+      this.onMetaChange?.(e);
     },
 
     triggerDocumentStateChange(e) {
-      this.printEvent('onDocumentStateChange', e)
-      this.onDocumentStateChange?.(e)
+      this.printEvent('onDocumentStateChange', e);
+      this.onDocumentStateChange?.(e);
     },
 
     triggerRequestHistory(e) {
-      this.printEvent('onRequestHistory', e)
-      this.loadHistoryList()
-      this.onRequestHistory?.()
+      this.printEvent('onRequestHistory', e);
+      this.loadHistoryList();
+      this.onRequestHistory?.();
     },
 
     triggerRequestRestore(e) {
-      this.printEvent('onRequestRestore', e)
-      const { version } = e.data
+      this.printEvent('onRequestRestore', e);
+      const { version } = e.data;
       docApi
         .restore(this.docId, version)
         .then((res) => {
-          const { code, success, message } = res
+          const { code, success, message } = res;
           if (code === 200 && success) {
             // load history
-            this.loadHistoryList()
+            this.loadHistoryList();
           } else {
-            this.$notify({ type: 'error', text: message })
+            this.$notify({ type: 'error', text: message });
           }
         })
         .catch((err) => {
-          console.error('Failed restore document version', err)
+          console.error('Failed restore document version', err);
         })
         .finally(() => {
-          this.onRequestRestore?.(e)
-        })
+          this.onRequestRestore?.(e);
+        });
     },
 
     triggerInfo(e) {
-      this.printEvent('onInfo', e)
-      this.onInfo?.(e)
+      this.printEvent('onInfo', e);
+      this.onInfo?.(e);
     },
 
     triggerWarning(e) {
-      this.printEvent('onWarning', e)
-      this.onWarning?.(e)
+      this.printEvent('onWarning', e);
+      this.onWarning?.(e);
     },
 
     triggerError(e) {
-      this.printEvent('onError', e)
-      this.onError?.(e)
+      this.printEvent('onError', e);
+      this.onError?.(e);
     },
 
     triggerRequestHistoryClose(e) {
-      this.printEvent('onRequestHistoryClose', e)
-      document.location.reload()
-      this.onRequestHistoryClose?.()
+      this.printEvent('onRequestHistoryClose', e);
+      document.location.reload();
+      this.onRequestHistoryClose?.();
     },
 
     printEvent(event, ...args) {
       this.printLog &&
-        console.log('document trigger event: %s,', event, 'args is: ', ...args)
+        console.log('document trigger event: %s,', event, 'args is: ', ...args);
     },
   },
-}
+};
 </script>

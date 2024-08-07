@@ -1,4 +1,4 @@
 export type Mentions = {
-  name: string
-  email: string
-}
+  name: string;
+  email: string;
+};

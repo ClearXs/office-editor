@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts" setup>
-import { OfficeEditor, type IEditor } from '@letstrong-office-editor/vue3';
+import { OfficeEditor, type IEditor } from '@office-editor/vue3';
 import { useMessage } from 'naive-ui';
 import { ref } from 'vue';
 

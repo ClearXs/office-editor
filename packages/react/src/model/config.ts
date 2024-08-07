@@ -1,4 +1,4 @@
-import { OnlineDocUser } from 'api/doc';
+import { OnlineDocUser } from '../api/doc';
 
 export type DocConfig = {
   documentType?: string;

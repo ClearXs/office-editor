@@ -1,10 +1,10 @@
-import { DocConfig } from 'model/config';
-import useRequest from '../hook/request';
+import useRequest from './request';
 import Result from './result';
-import { Mentions } from 'model/mention';
+import { Mentions } from '../model/mention';
+import { IConfig } from '@onlyoffice/document-editor-vue';
 
 export type DocumentEditorConfig = {
-  model: DocConfig;
+  model: IConfig;
   fileHistory: string[];
   documentServerUrl: string;
   docserviceApiUrl: string;

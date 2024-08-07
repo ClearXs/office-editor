@@ -27,31 +27,6 @@ export interface InternalRequest {
   ) => Promise<AxiosResponse<any, any>>;
 }
 
-// 创建内部remote
-const internalRemote = axios.create();
-internalRemote.defaults.baseURL = '/';
-internalRemote.defaults.timeout = 100000;
-internalRemote.defaults.headers.post['Content-Type'] = 'application/json';
-
-// 请求拦截器
-internalRemote.interceptors.request.use((config) => {
-  config.headers['Access-Token'] = getToken() || '';
-  return config;
-});
-
-function handleSuccess(res: AxiosResponse): Promise<AxiosResponse> {
-  return Promise.resolve(res);
-}
-
-/**
- * response错误处理，包含消息提示
- * @param err
- */
-function handleResError(err: AxiosError, errorValue?: any) {
-  console.error(err);
-  return Promise.resolve(errorValue || err.response);
-}
-
 class InternalRequestImpl implements InternalRequest {
   constructor(private axiosRequest: AxiosInstance) {}
 
@@ -109,8 +84,30 @@ class InternalRequestImpl implements InternalRequest {
 
 const useRequest = () => {
   const axiosRequest = axios.create();
+  // 创建内部remote
+  axiosRequest.defaults.baseURL = '/';
+  axiosRequest.defaults.timeout = 100000;
+  axiosRequest.defaults.headers.post['Content-Type'] = 'application/json';
+  // 请求拦截器
   axiosRequest.interceptors.request.use((config) => {
-    config.headers['Access-Token'] = getToken() || '';
+    config.headers['X-AUTHENTICATION'] = getToken() || '';
+    return config;
+  });
+
+  function handleSuccess(res: AxiosResponse): Promise<AxiosResponse> {
+    return Promise.resolve(res);
+  }
+
+  /**
+   * response错误处理，包含消息提示
+   * @param err
+   */
+  function handleResError(err: AxiosError, errorValue?: any) {
+    console.error(err);
+    return Promise.resolve(errorValue || err.response);
+  }
+  axiosRequest.interceptors.request.use((config) => {
+    config.headers['X-AUTHENTICATION'] = getToken() || '';
     return config;
   });
   axiosRequest.interceptors.response.use(

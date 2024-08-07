@@ -15,10 +15,11 @@
     "url": "https://github.com/ClearXs/office-editor.git"
   },
   "scripts": {
+    "example/vue2": "pnpm run -C example/vue2 dev",
     "example/vue3": "pnpm run -C example/vue3 dev",
     "example/react": "pnpm run -C example/react dev",
-    "build:example/react": "pnpm run -C example/react build",
-    "docker:example/react": "pnpm run -C example/react docker",
+    "build:vue2": "pnpm run -C packages/vue2 rollup",
+    "build:vue3": "pnpm run -C packages/vue3 rollup",
     "build:react": "pnpm run -C packages/react rollup",
     "publish": "pnpm publish -r --no-git-checks --access public"
   }
