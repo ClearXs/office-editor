@@ -1,18 +1,6 @@
-import useRequest from './request';
+import { DocumentEditorConfig } from '@office-editor/react';
+import useRequest from '../hook/request';
 import Result from './result';
-import { Mentions } from '../model/mention';
-import { IConfig } from '@onlyoffice/document-editor-vue';
-
-export type DocumentEditorConfig = {
-  model: IConfig;
-  fileHistory: string[];
-  documentServerUrl: string;
-  docserviceApiUrl: string;
-  dataInsertImage: string;
-  dataCompareFile: string;
-  dataMailMergeRecipients: string;
-  usersForMentions: Mentions[];
-};
 
 export const useEditorApi = () => {
   const request = useRequest();
@@ -22,7 +10,7 @@ export const useEditorApi = () => {
     action?: string,
     type?: string,
     actionLink?: string,
-    directUrl?: string
+    directUrl?: string,
   ): Promise<Result<DocumentEditorConfig>> => {
     return request
       .get('/api/office/editor', {

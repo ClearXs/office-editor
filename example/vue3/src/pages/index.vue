@@ -6,19 +6,17 @@
           action="/api/office/v1/doc/saves"
           :headers="{
             'X-AUTHENTICATION': Cookies.get('X-AUTHENTICATION'),
+            'X-TENANT': '0',
           }"
           accept=".doc,.docx,.ppt,.pptx,.xls,.xlsx"
+          @finish="uploadFinish"
+          :show-file-list="false"
         >
           <n-button>上传文件</n-button>
         </n-upload>
         <n-button @click="showTokenForm = true">设置token</n-button>
       </n-space>
-      <n-data-table
-        :loading="loading"
-        :columns="columns"
-        :data="docList"
-        :pagination="pagination"
-      />
+      <n-data-table :loading="loading" :columns="columns" :data="docList" />
     </n-space>
     <n-modal v-model:show="showTokenForm">
       <n-card
@@ -52,7 +50,7 @@
             <div>
               管理员:
               <p>
-                eyJraWQiOiJ0dXJibyBqd3QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ0b2tlbiIsImNyZWRlbnRpYWxzTm9uRXhwaXJlZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6Ly9hbGxpby5jYyIsImF2YXRhciI6Imh0dHA6Ly8xMjcuMC4wLjE6ODYwMC9zeXMvYXR0YWNobWVudC9kb3dubG9hZC8xMTM1NDMxODlfcDBfbWFzdGVyMTIwMC5qcGciLCJ1c2VySWQiOjExNjYwMTA3MjEzOTAwMzQ5NDQsImVuYWJsZWQiOnRydWUsImF1dGhvcml0aWVzIjpbeyJyb2xlSWQiOjExNzQwNDU0NzIyODIzNzgyNDAsInJvbGVDb2RlIjoiYXNkMjEyMSIsInJvbGVOYW1lIjoiYXNkIn0seyJyb2xlSWQiOjExNzc5NzA4ODA5OTU3ODY3NTIsInJvbGVDb2RlIjoiMjEiLCJyb2xlTmFtZSI6IjIxIn0seyJyb2xlSWQiOjExNzc5NzA1MDA5NTgxNTg4NDgsInJvbGVDb2RlIjoiYXNkIiwicm9sZU5hbWUiOiJ3YXNhZCJ9LHsicm9sZUlkIjoxMTc0MDQ1MzUyNzAyMzc3OTg0LCJyb2xlQ29kZSI6ImFzZDIxMjEiLCJyb2xlTmFtZSI6ImFzZCJ9LHsicm9sZUlkIjoxMTcyNDg2MTg2NjE1MTc3MjE2LCJyb2xlQ29kZSI6IjMyIiwicm9sZU5hbWUiOiLnrqHnkIblkZgifSx7InJvbGVJZCI6MTE3NDA0NTUwNDk0ODI3MzE1Miwicm9sZUNvZGUiOiJhc2QyMTIxIiwicm9sZU5hbWUiOiJhc2QifV0sInBhc3N3b3JkIjoiZmVFU29uUmNJc25qZ1hhRnhCVjRBQT09IiwicGhvbmUiOiIxMjMxMTMxMyIsIm5pY2tuYW1lIjoiampqampqamoiLCJ0ZW5hbnRJZCI6MCwiYWNjb3VudE5vbkV4cGlyZWQiOnRydWUsImV4cCI6MTcyMzEwMzAzNCwiaWF0IjoxNzIzMDE2NjM0LCJqdGkiOiIxMWEyYWUwOTA4M2EwMDAwIiwiZW1haWwiOiJqaWFuZ3cxMDI3QGdtYWlsLmNvbSIsImFjY291bnROb25Mb2NrZWQiOnRydWUsInVzZXJuYW1lIjoiYWRtaW4ifQ.tNWTZDVAxDDXLgVWd2RtnlCX2MSabTpsiZWGypdoaMiVzW2d1de2iA76HEvJAtT8mrTI2elHb8yKm6fQtb0CKgGODQeNiBR7vDJ4fygfaub4nn2xEcyGKV2B3vitDHaFixw9pNTHI1Am98vfdA2IfM63h79KmLj_h6rwCO6xy6xS3LgLoPdeJ44qYVgZPbunVCU575B-d8G7RxtCEZqwUmlVGtXXUwmLHRF2dEsOcyWnUHx32v5carUm5Qp-w8ObTuPrAZjBGFTFSfmQYPG5DiQssVPxiM1CRA5vWs-O7I2YbvLeG8e7jFIYZEqPC2Ho_4P3lREX8IXSZfluUfmRNg
+                eyJraWQiOiJ0dXJibyBqd3QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ0b2tlbiIsImNyZWRlbnRpYWxzTm9uRXhwaXJlZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6Ly9hbGxpby5jYyIsInVzZXJJZCI6MTE2NjAxMDcyMTM5MDAzNDk0NCwiZW5hYmxlZCI6dHJ1ZSwiYXV0aG9yaXRpZXMiOlt7InJvbGVJZCI6MTE3MjQ4NjE4NjYxNTE3NzIxNiwicm9sZUNvZGUiOiJhZG1pbmlzdHJhdG9yIiwicm9sZU5hbWUiOiLnrqHnkIblkZgifSx7InJvbGVJZCI6MTE3Nzk3MDUwMDk1ODE1ODg0OCwicm9sZUNvZGUiOiJhc2QiLCJyb2xlTmFtZSI6Indhc2FkIn0seyJyb2xlSWQiOjExNzQwNDU0NzIyODIzNzgyNDAsInJvbGVDb2RlIjoiYXNkMjEyMSIsInJvbGVOYW1lIjoiYXNkIn0seyJyb2xlSWQiOjExNzQwNDU1MDQ5NDgyNzMxNTIsInJvbGVDb2RlIjoiYXNkMjEyMSIsInJvbGVOYW1lIjoiYXNkIn0seyJyb2xlSWQiOjExNzc5NzA4ODA5OTU3ODY3NTIsInJvbGVDb2RlIjoiMjEiLCJyb2xlTmFtZSI6IjIxIn0seyJyb2xlSWQiOjExNzQwNDUzNTI3MDIzNzc5ODQsInJvbGVDb2RlIjoiYXNkMjEyMSIsInJvbGVOYW1lIjoiYXNkIn1dLCJwYXNzd29yZCI6ImZlRVNvblJjSXNuamdYYUZ4QlY0QUE9PSIsImFkbWluaXN0cmF0b3IiOnRydWUsImFjY291bnROb25FeHBpcmVkIjp0cnVlLCJleHAiOjQ4ODA1MTA2NjgsImlhdCI6MTcyNDgzNzA2OCwianRpIjoiMTFiZGNlNzBkYjcyMDAwMCIsImFjY291bnROb25Mb2NrZWQiOnRydWUsInVzZXJuYW1lIjoiYWRtaW4ifQ.m8Cmwm7zYaBXsrNXzrx2gMmbtMwcfpjloFgM5wQUWXHADOikBGuY5oLOF50pAzMd8MRZxfuPMEKdR7lmOo_xxcs_t0TSriVGmMQ0rIUCk4r6digoKpgOJLoXzMIilP3QZ3ZSZ4HAU5MYgzFk579eE1za5fqQUTiabCBCqos0lAqC7rtO8STf7jG8TFRJCooQo3ml1W-CI0DDAB3x1NGeP5SPRK-xIlOYRNeiubz886VSDU9t7AYvvqsvzuuiiRLZf4tGpCCRkPN-aphfsqBt0WcIZCdeWyAE4S_lv3PMfZcO1cxiitgVf7e34tWyXJCejDAeJtNCCdnIgT5Wint62w
               </p>
             </div>
           </n-space>
@@ -61,19 +59,19 @@
     </n-modal>
 
     <div class="w-[100vw] h-[100vh]">
-      <office-editor
+      <editor
         v-if="show"
         :docId="selectDoc?.id"
         :onDocumentReady="onDocumentReady"
       >
-      </office-editor>
+      </editor>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import useDocApi, { type Doc } from '@/api/doc';
-import { type IEditor, OfficeEditor } from '@office-editor/vue3';
+import Editor from './Editor.vue';
 import Cookies from 'js-cookie';
 import {
   type PaginationProps,
@@ -138,7 +136,7 @@ const columns = ref<DataTableColumns<Doc>>([
   },
   {
     key: 'actions',
-    width: '800',
+    width: '400',
     render(rowData, rowIndex) {
       return h(NSpace, {}, [
         h(
@@ -212,58 +210,16 @@ const columns = ref<DataTableColumns<Doc>>([
           NButton,
           {
             dashed: true,
-            type: 'warning',
-            onClick(e) {
-              docEditor.value?.triggerKickout(['1']);
-            },
-          },
-          { default: '踢出' }
-        ),
-        h(
-          NButton,
-          {
-            dashed: true,
-            type: 'warning',
-            onClick(e) {
-              docEditor.value?.triggerKickoutAll();
-            },
-          },
-          { default: '踢出所有人' }
-        ),
-        h(
-          NButton,
-          {
-            dashed: true,
-            type: 'warning',
-            onClick(e) {
-              docEditor.value?.triggerKickoutOthers();
-            },
-          },
-          { default: '踢出其他人' }
-        ),
-        h(
-          NButton,
-          {
-            dashed: true,
-            type: 'primary',
-            onClick(e) {
-              docEditor.value?.triggerForceSave();
-            },
-          },
-          { default: '强制保存' }
-        ),
-        h(
-          NButton,
-          {
-            dashed: true,
             type: 'tertiary',
             onClick(e) {
-              docEditor.value?.onlineDocUser((users) => {
-                messageApi.info(JSON.stringify(users));
-              });
+              window.open(
+                `/api/office/v1/doc/download/${rowData.id}?X-AUTHENTICATION=${Cookies.get('X-AUTHENTICATION')}&X-TENANT=0`
+              );
+              selectDoc.value = undefined;
+              show.value = false;
             },
           },
-          { default: '在线用户' }
+          { default: '下载' }
         ),
       ]);
     },
@@ -300,15 +256,7 @@ const save = () => {
 };
 
 const uploadFinish = (file: UploadFileInfo) => {
-  docFile.value = file;
-};
-
-const uploadRemove = () => {
-  docFile.value = undefined;
-};
-
-const uploadChange = () => {
-  console.log(this);
+  loadList();
 };
 
 const setToken = () => {
@@ -327,17 +275,17 @@ const onDocumentReady = (editor: IEditor) => {
 };
 
 onMounted(() => {
+  loadList();
+});
+
+const loadList = () => {
   loading.value = true;
   docApi
-    .page({
-      current: pagination.value.page,
-      size: pagination.value.pageSize,
-    })
+    .list({})
     .then((res) => {
       const { code, data, message } = res;
       if (code === 200) {
-        docList.value = data.records;
-        pagination.value.itemCount = data.total;
+        docList.value = data;
       } else {
         messageApi.error(message);
       }
@@ -345,5 +293,5 @@ onMounted(() => {
     .finally(() => {
       loading.value = false;
     });
-});
+};
 </script>

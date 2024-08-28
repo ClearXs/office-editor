@@ -28,7 +28,7 @@ export default defineConfig({
     {
       name: ' Editor',
       path: '/editor/:docId',
-      component: './Editor',
+      component: './ParamsEditor',
       layout: false,
     },
     {

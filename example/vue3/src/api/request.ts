@@ -5,7 +5,6 @@ import axios, {
   type Method,
 } from 'axios';
 import Cookies from 'js-cookie';
-import { useMessage } from 'naive-ui';
 
 export interface InternalRequest {
   request: (
@@ -31,6 +30,19 @@ export interface InternalRequest {
     path: string,
     params?: Record<string, any>
   ) => Promise<AxiosResponse<any, any>>;
+}
+
+function handleSuccess(res: AxiosResponse): Promise<AxiosResponse> {
+  return Promise.resolve(res);
+}
+
+/**
+ * response错误处理，包含消息提示
+ * @param err
+ */
+function handleResError(err: AxiosError, errorValue?: any) {
+  console.error(err);
+  return Promise.resolve(errorValue || err.response);
 }
 
 class InternalRequestImpl implements InternalRequest {
@@ -89,8 +101,6 @@ class InternalRequestImpl implements InternalRequest {
 }
 
 const useRequest = () => {
-  const messageApi = useMessage();
-
   const axiosRequest = axios.create();
   axiosRequest.defaults.baseURL = '/';
   axiosRequest.defaults.timeout = 100000;
@@ -98,6 +108,7 @@ const useRequest = () => {
   // 请求拦截器
   axiosRequest.interceptors.request.use((config) => {
     config.headers['X-AUTHENTICATION'] = Cookies.get('X-AUTHENTICATION');
+    config.headers['X-TENANT'] = '0';
     return config;
   });
   axiosRequest.interceptors.response.use(
@@ -112,20 +123,6 @@ const useRequest = () => {
       }
     }
   );
-
-  function handleSuccess(res: AxiosResponse): Promise<AxiosResponse> {
-    return Promise.resolve(res);
-  }
-
-  /**
-   * response错误处理，包含消息提示
-   * @param err
-   */
-  function handleResError(err: AxiosError, errorValue?: any) {
-    messageApi.error(err.message);
-    return Promise.resolve(errorValue || err.response);
-  }
-
   return new InternalRequestImpl(axiosRequest);
 };
 

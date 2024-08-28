@@ -7,11 +7,11 @@ import {
   ProFormTextArea,
   ProTable,
 } from '@ant-design/pro-components';
-import { IEditor, OfficeEditor } from '@office-editor/react';
 import { useNavigate } from '@umijs/max';
 import { Button, Upload, message } from 'antd';
 import Cookies from 'js-cookie';
 import { useRef, useState } from 'react';
+import Editor from '../Editor';
 
 export const waitTimePromise = async (time: number = 100) => {
   return new Promise((resolve) => {
@@ -30,8 +30,6 @@ export default () => {
 
   const [docId, setDocId] = useState<string>();
   const [show, setShow] = useState<boolean>(false);
-
-  const docEditorRef = useRef<IEditor | undefined>();
 
   const defaultPage: IPage<Doc> = {
     current: 1,
@@ -81,7 +79,7 @@ export default () => {
       title: '操作',
       valueType: 'option',
       key: 'option',
-      width: '70%',
+      width: '35%',
       render: (text, record, _, action) => [
         <Button key="1" type="primary" onClick={() => {}}>
           编辑
@@ -115,44 +113,14 @@ export default () => {
         <Button
           key="4"
           onClick={() => {
-            docEditorRef.current?.triggerKickout(['1']);
+            window.open(
+              `/api/office/v1/doc/download/${
+                record.id
+              }?X-AUTHENTICATION=${Cookies.get('X-AUTHENTICATION')}&X-TENANT=0`,
+            );
           }}
         >
-          踢出
-        </Button>,
-        <Button
-          key="4"
-          onClick={() => {
-            docEditorRef.current?.triggerKickoutAll();
-          }}
-        >
-          踢出所有人
-        </Button>,
-        <Button
-          key="4"
-          onClick={() => {
-            docEditorRef.current?.triggerKickoutOthers();
-          }}
-        >
-          踢出其他人
-        </Button>,
-        <Button
-          key="4"
-          onClick={() => {
-            docEditorRef.current?.triggerForceSave();
-          }}
-        >
-          强制保存
-        </Button>,
-        <Button
-          key="4"
-          onClick={() => {
-            docEditorRef.current?.onlineDocUser((user) => {
-              console.log(user);
-            });
-          }}
-        >
-          在线用户
+          下载
         </Button>,
       ],
     },
@@ -222,17 +190,14 @@ export default () => {
         toolBarRender={() => [
           <Upload
             accept=".doc,.docx,.xlsx,.xls,.ppt,.pptx"
-            onChange={(info) => {
-              const { file } = info;
-              if (file.status === 'done') {
-                const { response } = file;
-                setFile([response?.data]);
-              }
-            }}
             maxCount={1}
             name="file"
             action="/api/office/v1/doc/saves"
-            headers={{ 'X-AUTHENTICATION': Cookies.get('X-AUTHENTICATION') }}
+            showUploadList={false}
+            headers={{
+              'X-AUTHENTICATION': Cookies.get('X-AUTHENTICATION'),
+              'X-TENANT': '0',
+            }}
           >
             <Button icon={<UploadOutlined />}>上传</Button>
           </Upload>,
@@ -254,27 +219,13 @@ export default () => {
             <p>
               管理员token：
               <p>
-                eyJraWQiOiJ0dXJibyBqd3QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ0b2tlbiIsImNyZWRlbnRpYWxzTm9uRXhwaXJlZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6Ly9hbGxpby5jYyIsImF2YXRhciI6Imh0dHA6Ly8xMjcuMC4wLjE6ODYwMC9zeXMvYXR0YWNobWVudC9kb3dubG9hZC8xMTM1NDMxODlfcDBfbWFzdGVyMTIwMC5qcGciLCJ1c2VySWQiOjExNjYwMTA3MjEzOTAwMzQ5NDQsImVuYWJsZWQiOnRydWUsImF1dGhvcml0aWVzIjpbeyJyb2xlSWQiOjExNzQwNDU0NzIyODIzNzgyNDAsInJvbGVDb2RlIjoiYXNkMjEyMSIsInJvbGVOYW1lIjoiYXNkIn0seyJyb2xlSWQiOjExNzc5NzA4ODA5OTU3ODY3NTIsInJvbGVDb2RlIjoiMjEiLCJyb2xlTmFtZSI6IjIxIn0seyJyb2xlSWQiOjExNzc5NzA1MDA5NTgxNTg4NDgsInJvbGVDb2RlIjoiYXNkIiwicm9sZU5hbWUiOiJ3YXNhZCJ9LHsicm9sZUlkIjoxMTc0MDQ1MzUyNzAyMzc3OTg0LCJyb2xlQ29kZSI6ImFzZDIxMjEiLCJyb2xlTmFtZSI6ImFzZCJ9LHsicm9sZUlkIjoxMTcyNDg2MTg2NjE1MTc3MjE2LCJyb2xlQ29kZSI6IjMyIiwicm9sZU5hbWUiOiLnrqHnkIblkZgifSx7InJvbGVJZCI6MTE3NDA0NTUwNDk0ODI3MzE1Miwicm9sZUNvZGUiOiJhc2QyMTIxIiwicm9sZU5hbWUiOiJhc2QifV0sInBhc3N3b3JkIjoiZmVFU29uUmNJc25qZ1hhRnhCVjRBQT09IiwicGhvbmUiOiIxMjMxMTMxMyIsIm5pY2tuYW1lIjoiampqampqamoiLCJ0ZW5hbnRJZCI6MCwiYWNjb3VudE5vbkV4cGlyZWQiOnRydWUsImV4cCI6MTcyMzEwMzAzNCwiaWF0IjoxNzIzMDE2NjM0LCJqdGkiOiIxMWEyYWUwOTA4M2EwMDAwIiwiZW1haWwiOiJqaWFuZ3cxMDI3QGdtYWlsLmNvbSIsImFjY291bnROb25Mb2NrZWQiOnRydWUsInVzZXJuYW1lIjoiYWRtaW4ifQ.tNWTZDVAxDDXLgVWd2RtnlCX2MSabTpsiZWGypdoaMiVzW2d1de2iA76HEvJAtT8mrTI2elHb8yKm6fQtb0CKgGODQeNiBR7vDJ4fygfaub4nn2xEcyGKV2B3vitDHaFixw9pNTHI1Am98vfdA2IfM63h79KmLj_h6rwCO6xy6xS3LgLoPdeJ44qYVgZPbunVCU575B-d8G7RxtCEZqwUmlVGtXXUwmLHRF2dEsOcyWnUHx32v5carUm5Qp-w8ObTuPrAZjBGFTFSfmQYPG5DiQssVPxiM1CRA5vWs-O7I2YbvLeG8e7jFIYZEqPC2Ho_4P3lREX8IXSZfluUfmRNg
+                eyJraWQiOiJ0dXJibyBqd3QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ0b2tlbiIsImNyZWRlbnRpYWxzTm9uRXhwaXJlZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6Ly9hbGxpby5jYyIsInVzZXJJZCI6MTE2NjAxMDcyMTM5MDAzNDk0NCwiZW5hYmxlZCI6dHJ1ZSwiYXV0aG9yaXRpZXMiOlt7InJvbGVJZCI6MTE3MjQ4NjE4NjYxNTE3NzIxNiwicm9sZUNvZGUiOiJhZG1pbmlzdHJhdG9yIiwicm9sZU5hbWUiOiLnrqHnkIblkZgifSx7InJvbGVJZCI6MTE3Nzk3MDUwMDk1ODE1ODg0OCwicm9sZUNvZGUiOiJhc2QiLCJyb2xlTmFtZSI6Indhc2FkIn0seyJyb2xlSWQiOjExNzQwNDU0NzIyODIzNzgyNDAsInJvbGVDb2RlIjoiYXNkMjEyMSIsInJvbGVOYW1lIjoiYXNkIn0seyJyb2xlSWQiOjExNzQwNDU1MDQ5NDgyNzMxNTIsInJvbGVDb2RlIjoiYXNkMjEyMSIsInJvbGVOYW1lIjoiYXNkIn0seyJyb2xlSWQiOjExNzc5NzA4ODA5OTU3ODY3NTIsInJvbGVDb2RlIjoiMjEiLCJyb2xlTmFtZSI6IjIxIn0seyJyb2xlSWQiOjExNzQwNDUzNTI3MDIzNzc5ODQsInJvbGVDb2RlIjoiYXNkMjEyMSIsInJvbGVOYW1lIjoiYXNkIn1dLCJwYXNzd29yZCI6ImZlRVNvblJjSXNuamdYYUZ4QlY0QUE9PSIsImFkbWluaXN0cmF0b3IiOnRydWUsImFjY291bnROb25FeHBpcmVkIjp0cnVlLCJleHAiOjQ4ODA1MTA2NjgsImlhdCI6MTcyNDgzNzA2OCwianRpIjoiMTFiZGNlNzBkYjcyMDAwMCIsImFjY291bnROb25Mb2NrZWQiOnRydWUsInVzZXJuYW1lIjoiYWRtaW4ifQ.m8Cmwm7zYaBXsrNXzrx2gMmbtMwcfpjloFgM5wQUWXHADOikBGuY5oLOF50pAzMd8MRZxfuPMEKdR7lmOo_xxcs_t0TSriVGmMQ0rIUCk4r6digoKpgOJLoXzMIilP3QZ3ZSZ4HAU5MYgzFk579eE1za5fqQUTiabCBCqos0lAqC7rtO8STf7jG8TFRJCooQo3ml1W-CI0DDAB3x1NGeP5SPRK-xIlOYRNeiubz886VSDU9t7AYvvqsvzuuiiRLZf4tGpCCRkPN-aphfsqBt0WcIZCdeWyAE4S_lv3PMfZcO1cxiitgVf7e34tWyXJCejDAeJtNCCdnIgT5Wint62w
               </p>
             </p>
           </ModalForm>,
         ]}
       />
-      {show && docId !== undefined && (
-        <div style={{ height: '100vh', width: '100vw' }}>
-          <OfficeEditor
-            printLog={true}
-            docId={docId}
-            onDocumentReady={(docEditor) => {
-              docEditorRef.current = docEditor;
-            }}
-            onDocumentBeforeDestroy={() => {
-              console.log(this);
-              docEditorRef.current = null;
-            }}
-          />
-        </div>
-      )}
+      {show && docId !== undefined && <Editor docId={docId}></Editor>}
     </>
   );
 };

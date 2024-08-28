@@ -1,28 +1,16 @@
 import { DocumentEditor } from '@onlyoffice/document-editor-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { DocumentEditorConfig, useEditorApi } from './api/editor';
 import { IEditor } from './model/config';
-import useDocApi from './api/doc';
 import { IOfficeEditorProps } from './interface';
-import { ProgressBar } from 'react-loader-spinner';
 import { ToastContainer, toast } from 'react-toast';
 
 const OfficeEditor: React.FC<IOfficeEditorProps> = ({
-  docId,
+  id,
+  config,
+  api,
   printLog = false,
   height = '100%',
   width = '100%',
-  action = 'edit',
-  type = 'desktop',
-  config = {
-    logo: undefined,
-    plugins: true,
-    integrationMode: 'embed',
-    spellcheck: true,
-    unit: 'cm',
-    hideNotes: false,
-    zoom: 100,
-  },
   onDocumentReady,
   onLoadComponentError,
   onMetaChange,
@@ -43,129 +31,80 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
   onDocumentStateChange,
   onDocumentBeforeDestroy,
 }) => {
-  const [documentConfig, setDocumentConfig] = useState<DocumentEditorConfig>();
-
-  const editorApi = useEditorApi();
-  const docApi = useDocApi();
   const docEditorRef = useRef<IEditor>();
+  const [ready, setReady] = useState<boolean>(false);
 
   useEffect(() => {
-    loadDocumentConfig();
+    // pre valid check
+    if (config === undefined || id === undefined || api === undefined) {
+      toast.error("require 'config', 'id', 'api' properties must not null ");
+    } else {
+      setReady(true);
+    }
     return () => {
       triggerDocumentBeforeDestroy();
     };
-  }, [docId]);
-
-  const loadDocumentConfig = useCallback(() => {
-    editorApi
-      .editor(docId, action, type)
-      .then((res) => {
-        const { code, data, message } = res;
-        if (code === 200) {
-          const documentConfig = { ...data };
-          const docConfig = { ...documentConfig.model };
-          const editorConfig = docConfig.editorConfig || {};
-          editorConfig.customization = {
-            ...(editorConfig?.customization || {}),
-            ...config,
-            logo:
-              config.logo !== undefined
-                ? config.logo
-                : editorConfig.customization?.logo,
-          };
-          docConfig.editorConfig = editorConfig;
-          console.log('load editor config is: ', documentConfig);
-          setDocumentConfig(documentConfig);
-        } else {
-          toast.error(message);
-        }
-      })
-      .catch((err) => {
-        console.error('Failed to get document config', err);
-      });
-  }, [docId]);
+  }, [id]);
 
   const printEvent = useCallback(
     (event: keyof IOfficeEditorProps | keyof IEditor, ...args: any) => {
       printLog &&
         console.log('document trigger event: %s,', event, 'args is: ', ...args);
     },
-    [docId]
+    [id]
   );
 
   const loadHistoryList = useCallback(() => {
-    docApi
-      .getHistory(docId)
-      .then((res) => {
-        const { code, data, message } = res;
-        if (code === 200) {
-          docEditorRef.current?.refreshHistory?.(data);
-        } else {
-          toast.error(message);
-        }
+    api
+      .loadHistoryList?.()
+      .then((data) => {
+        docEditorRef.current?.refreshHistory?.(data);
       })
       .catch((err) => {
         console.log('Failed to load history.', err);
         toast.error('Failed load history.');
       });
-  }, [docId]);
+  }, [id]);
 
   const loadHistoryData = useCallback(
     (version: number) => {
-      docApi
-        .getHistoryData(docId, version)
-        .then((res) => {
-          const { code, data, message } = res;
-          if (code === 200) {
-            docEditorRef.current?.setHistoryData?.(data);
-          } else {
-            toast.error(message);
-          }
+      api
+        .loadHistoryData?.(version)
+        .then((data) => {
+          docEditorRef.current?.setHistoryData?.(data);
         })
         .catch((err) => {
           console.error('Failed load history data.', err);
           toast.error('Failed load history data.');
         });
     },
-    [docId]
+    [id]
   );
 
   const triggerDocumentReady = () => {
     printEvent('onDocumentReady');
 
-    const docEditor = window.DocEditor.instances[docId] as IEditor;
+    const docEditor = window.DocEditor.instances[id] as IEditor;
 
     docEditor.triggerForceSave = (callback) => {
       printEvent('triggerForceSave');
-      docApi
-        .forceSave(docId)
-        .then((res) => {
-          const { data, code } = res;
-          if (code === 200 && data) {
-            console.log('force save success');
-          } else {
-            console.error('Failed force save, the result is', res);
-          }
-          callback?.(data, undefined);
+      api
+        .triggerForceSave?.()
+        .then((success) => {
+          callback?.(success, undefined);
         })
         .catch((err) => {
-          callback?.(false, undefined);
+          callback?.(false, err);
           console.error('Failed force save.', err);
         });
     };
 
     docEditor.triggerKickout = (userIds, callback) => {
       printEvent('triggerKickout');
-      docApi
-        .kickout(docId, userIds)
-        .then((res) => {
-          const { code, data } = res;
-          if (code === 200 && data) {
-            console.log('kickout success');
-          } else {
-            console.error('Failed kickout, the result is', res);
-          }
-          callback?.(data, undefined);
+      api
+        .triggerKickout?.(userIds)
+        .then((success) => {
+          callback?.(success, undefined);
         })
         .catch((err) => {
           console.error('Failed kickout.', err);
@@ -175,16 +114,10 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
 
     docEditor.triggerKickoutOthers = (callback) => {
       printEvent('triggerKickoutOthers');
-      docApi
-        .kickoutAll(docId)
-        .then((res) => {
-          const { code, data } = res;
-          if (code === 200 && data) {
-            console.log('kickout others success');
-          } else {
-            console.error('Failed kickout others, the result is', res);
-          }
-          callback?.(data, undefined);
+      api
+        .triggerKickoutOthers?.()
+        .then((success) => {
+          callback?.(success, undefined);
         })
         .catch((err) => {
           console.error('Failed kickout others.', err);
@@ -194,16 +127,10 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
 
     docEditor.triggerKickoutAll = (callback) => {
       printEvent('triggerKickoutAll');
-      docApi
-        .kickoutAll(docId)
-        .then((res) => {
-          const { code, data } = res;
-          if (code === 200 && data) {
-            console.log('kickout all success');
-          } else {
-            console.error('Failed kickout all, the result is', res);
-          }
-          callback?.(data, undefined);
+      api
+        .triggerKickoutAll?.()
+        .then((success) => {
+          callback?.(success, undefined);
         })
         .catch((err) => {
           console.error('Failed kickout all.', err);
@@ -213,15 +140,9 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
 
     docEditor.onlineDocUser = (callback) => {
       printEvent('onlineDocUser');
-      docApi
-        .getOnlineDocUser(docId)
-        .then((res) => {
-          const { code, data } = res;
-          if (code === 200) {
-            console.log('get online doc user success');
-          } else {
-            console.error('Failed get online doc user , the result is', res);
-          }
+      api
+        .triggerOnlineDocUser?.()
+        .then((data) => {
           callback?.(data || [], undefined);
         })
         .catch((err) => {
@@ -231,7 +152,6 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
     };
 
     docEditorRef.current = docEditor as IEditor;
-
     onDocumentReady?.(docEditor);
   };
 
@@ -261,16 +181,11 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
   const triggerRequestRestore = (e: Record<string, any>) => {
     printEvent('onRequestRestore', e);
     const { version } = e.data;
-
-    docApi
-      .restore(docId, version)
-      .then((res) => {
-        const { code, message } = res;
-        if (code === 200) {
-          // load history
+    api
+      .triggerRestore?.(version)
+      .then((success) => {
+        if (success) {
           loadHistoryList();
-        } else {
-          toast.error(message);
         }
       })
       .catch((err) => {
@@ -283,8 +198,9 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
 
   const triggerRequestRename = (e: Record<string, any>) => {
     printEvent('onRequestRename', e);
-    docApi
-      .rename(docId, { newfilename: e.data })
+    const { newfilename } = e.data;
+    api
+      .triggerRename?.(newfilename)
       .then()
       .catch((err) => {
         console.error('Failed rename doc', err);
@@ -360,13 +276,13 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
 
   return (
     <>
-      {documentConfig !== undefined ? (
+      {ready && (
         <DocumentEditor
-          id={docId}
+          id={id}
           width={width}
           height={height}
-          config={documentConfig.model}
-          documentServerUrl={documentConfig.documentServerUrl}
+          config={config.model}
+          documentServerUrl={config.documentServerUrl}
           events_onDocumentReady={triggerDocumentReady}
           onLoadComponentError={triggerLoadComponentError}
           events_onRequestHistoryData={triggerRequestHistoryData}
@@ -388,23 +304,6 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
           events_onRequestCompareFile={triggerRequestCompareFile}
           events_onRequestEditRights={triggerRequestEditRights}
         />
-      ) : (
-        <div
-          style={{
-            display: 'flex',
-            height: '100%',
-            width: '100%',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ProgressBar
-            visible={true}
-            height='120'
-            width='120'
-            ariaLabel='progress-bar-loading'
-          />
-        </div>
       )}
       <ToastContainer position='bottom-center' />
     </>

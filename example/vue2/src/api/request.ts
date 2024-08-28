@@ -27,18 +27,6 @@ export interface InternalRequest {
   ) => Promise<AxiosResponse<any, any>>;
 }
 
-// 创建内部remote
-const internalRemote = axios.create();
-internalRemote.defaults.baseURL = '/';
-internalRemote.defaults.timeout = 100000;
-internalRemote.defaults.headers.post['Content-Type'] = 'application/json';
-
-// 请求拦截器
-internalRemote.interceptors.request.use((config) => {
-  config.headers['X-AUTHENTICATION'] = Cookies.get('Access-Token');
-  return config;
-});
-
 function handleSuccess(res: AxiosResponse): Promise<AxiosResponse> {
   return Promise.resolve(res);
 }
@@ -115,6 +103,7 @@ const useRequest = () => {
   // 请求拦截器
   axiosRequest.interceptors.request.use((config) => {
     config.headers['X-AUTHENTICATION'] = Cookies.get('X-AUTHENTICATION');
+    config.headers['X-TENANT'] = '0';
     return config;
   });
   axiosRequest.interceptors.response.use(

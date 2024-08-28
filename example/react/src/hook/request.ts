@@ -37,6 +37,7 @@ internalRemote.defaults.headers.post['Content-Type'] = 'application/json';
 // 请求拦截器
 internalRemote.interceptors.request.use((config) => {
   config.headers['X-AUTHENTICATION'] = Cookies.get('X-AUTHENTICATION') || '';
+  config.headers['X-TENANT'] = '0';
   return config;
 });
 

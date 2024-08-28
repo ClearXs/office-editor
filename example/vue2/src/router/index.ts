@@ -1,11 +1,11 @@
-import Vue from 'vue'
-import type { RouteConfig } from 'vue-router'
-import VueRouter from 'vue-router'
-import Home from '@/views/Home.vue'
-import NotFound from '@/views/NotFound.vue'
-import Editor from '@/views/editor.vue'
+import Vue from 'vue';
+import type { RouteConfig } from 'vue-router';
+import VueRouter from 'vue-router';
+import Home from '@/views/Home.vue';
+import NotFound from '@/views/NotFound.vue';
+import Editor from '@/views/RouteEditor.vue';
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 export const routes: RouteConfig[] = [
   {
@@ -27,12 +27,12 @@ export const routes: RouteConfig[] = [
     name: 'NotFound',
     component: NotFound,
   },
-]
+];
 
 const router = new VueRouter({
   base: '/',
   mode: 'history',
   routes,
-})
+});
 
-export default router
+export default router;

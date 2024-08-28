@@ -1,4 +1,4 @@
-import { OnlineDocUser } from '../api/doc';
+import { OnlineDocUser } from '../interface';
 
 export type DocConfig = {
   documentType?: string;
@@ -111,9 +111,11 @@ export type DocConfig = {
       forcesave?: boolean;
       goback?: any;
       help?: boolean;
+      // 定义在首次加载时是否显示或隐藏注释面板.默认值为 false。此参数仅适用于演示文稿编辑器。
       hideNotes?: boolean;
       hideRightMenu?: boolean;
       hideRulers?: boolean;
+      // 定义将编辑器嵌入网页的模式。由于未捕获焦点，嵌入值在加载编辑器框架时会禁用滚动到编辑器框架。 默认为空
       integrationMode?: string;
       logo?: {
         image?: string;
@@ -153,7 +155,13 @@ export type DocConfig = {
        */
       trackChanges?: boolean;
       uiTheme?: string;
+      // 定义标尺和对话框中使用的测量单位。
+      // cm: centimeters
+      // pt: points
+      // inch: inches
+      // 默认取cm
       unit?: string;
+      // 定义以百分比为单位的文档显示缩放值,默认值为100
       zoom?: number;
     };
     embedded?: {

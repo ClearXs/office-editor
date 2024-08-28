@@ -1,18 +1,6 @@
-import { IEditor } from '../model/config';
+import { DocumentEditorConfig } from '@office-editor/vue2';
 import useRequest from './request';
 import Result from './result';
-import { Mentions } from '../model/mention';
-
-export type DocumentEditorConfig = {
-  model: IEditor;
-  fileHistory: string[];
-  documentServerUrl: string;
-  docserviceApiUrl: string;
-  dataInsertImage: string;
-  dataCompareFile: string;
-  dataMailMergeRecipients: string;
-  usersForMentions: Mentions[];
-};
 
 export const useEditorApi = () => {
   const request = useRequest();

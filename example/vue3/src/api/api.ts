@@ -1,13 +1,13 @@
 import useRequest from './request';
-import type {
-  Api,
-  GeneralParams,
-  IPage,
-  Model,
-  RemoteQueryParam,
-  Term,
+import {
+  type Api,
+  type GeneralParams,
+  type IPage,
+  type Model,
+  type RemoteQueryParam,
+  type Term,
 } from './interface';
-import type { Result } from './result';
+import { type Result } from './result';
 
 const useApi = <T extends Model>(modelPath: string): Api<T> => {
   const request = useRequest();

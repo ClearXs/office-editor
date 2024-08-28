@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@vueuse/core": "^9.13.0",
-    "vue": "^2.7.16",
+    "vue": "^2.6.10",
     "vue-router": "^3.6.5",
     "@office-editor/vue2": "workspace:^",
     "@smallwei/avue": "^2.12.7",

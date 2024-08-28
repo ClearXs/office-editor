@@ -1,12 +1,12 @@
 <template>
   <div :style="{ width: 'inherit', height: 'inherit' }">
     <document-editor
-      v-if="documentConfigRef !== undefined"
-      :id="docId"
+      v-if="readyRef"
+      :id="id"
       :width="width"
       :height="height"
-      :config="documentConfigRef.model"
-      :documentServerUrl="documentConfigRef.documentServerUrl"
+      :config="config.model"
+      :documentServerUrl="config.documentServerUrl"
       :events_onDocumentReady="triggerDocumentReady"
       :onLoadComponentError="triggerLoadComponentError"
       :events_onRequestHistoryData="triggerRequestHistoryData"
@@ -35,41 +35,24 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { IOfficeEditorProps } from './interface';
 import { DocumentEditor } from '@onlyoffice/document-editor-vue';
-import { DocumentEditorConfig, useEditorApi } from './api/editor';
-import useDocApi from './api/doc';
 import { type IEditor } from './model/config';
 import { useNotification, Notifications } from '@kyvg/vue3-notification';
 
 const { notify } = useNotification();
 
-const editorApi = useEditorApi();
-const docApi = useDocApi();
-
 const props = withDefaults(defineProps<IOfficeEditorProps>(), {
   width: '100%',
   height: '100%',
-  action: 'edit',
-  type: 'desktop',
   printLog: true,
-  config: {
-    logo: undefined,
-    plugins: true,
-    integrationMode: 'embed',
-    spellcheck: true,
-    unit: 'cm',
-    hideNotes: false,
-    zoom: 100,
-  },
 });
 
 const {
-  docId,
+  id,
+  config,
+  api,
   printLog,
   height,
   width,
-  action,
-  type,
-  config,
   onDocumentReady,
   onLoadComponentError,
   onMetaChange,
@@ -93,55 +76,29 @@ const {
 
 const docEditorRef = ref<IEditor | undefined>();
 
-const documentConfigRef = ref<DocumentEditorConfig | undefined>();
+const readyRef = ref<boolean>(false);
 
 onMounted(() => {
-  loadDocumentConfig();
+  // pre valid check
+  if (config === undefined || id === undefined || api === undefined) {
+    notify({
+      type: 'error',
+      text: "require 'config', 'id', 'api' properties must not null ",
+    });
+  } else {
+    readyRef.value = true;
+  }
 });
 
 onUnmounted(() => {
   triggerDocumentBeforeDestroy();
 });
 
-const loadDocumentConfig = () => {
-  editorApi
-    .editor(docId, action, type)
-    .then((res) => {
-      const { code, data, message } = res;
-      if (code === 200) {
-        const documentConfig = { ...data };
-        const docConfig = { ...documentConfig.model };
-        const editorConfig = docConfig.editorConfig || {};
-        editorConfig.customization = {
-          ...(editorConfig?.customization || {}),
-          ...config,
-          logo:
-            config?.logo !== undefined
-              ? config.logo
-              : editorConfig.customization?.logo,
-        };
-        docConfig['editorConfig'] = editorConfig;
-        console.log('load editor config is: ', documentConfig);
-        documentConfigRef.value = documentConfig;
-      } else {
-        notify({ type: 'error', text: message });
-      }
-    })
-    .catch((err) => {
-      console.error('Failed to get document config', err);
-    });
-};
-
 const loadHistoryList = () => {
-  docApi
-    .getHistory(docId)
-    .then((res) => {
-      const { code, data, message } = res;
-      if (code === 200) {
-        docEditorRef.value?.refreshHistory?.(data);
-      } else {
-        notify({ type: 'error', text: message });
-      }
+  api
+    .loadHistoryList?.()
+    .then((data) => {
+      docEditorRef.value?.refreshHistory?.(data);
     })
     .catch((err) => {
       console.log('Failed to load history.', err);
@@ -150,15 +107,10 @@ const loadHistoryList = () => {
 };
 
 const loadHistoryData = (version: number) => {
-  docApi
-    .getHistoryData(docId, version)
-    .then((res) => {
-      const { code, data, message } = res;
-      if (code === 200) {
-        docEditorRef.value?.setHistoryData?.(data);
-      } else {
-        notify({ type: 'error', text: message });
-      }
+  api
+    .loadHistoryData?.(version)
+    .then((data) => {
+      docEditorRef.value?.setHistoryData?.(data);
     })
     .catch((err) => {
       console.error('Failed load history data.', err);
@@ -170,8 +122,9 @@ const loadHistoryData = (version: number) => {
 
 const triggerRequestRename = (e: Record<string, any>) => {
   printEvent('onRequestRename', e);
-  docApi
-    .rename(docId, { newfilename: e.data })
+  const { newfilename } = e.data;
+  api
+    .triggerRename?.(newfilename)
     .then()
     .catch((err) => {
       console.error('Failed rename doc', err);
@@ -183,39 +136,27 @@ const triggerRequestRename = (e: Record<string, any>) => {
 
 const triggerDocumentReady = () => {
   printEvent('onDocumentReady');
-  const docEditor: IEditor = window.DocEditor?.instances[docId];
+  const docEditor: IEditor = window.DocEditor?.instances[id];
   if (docEditor) {
     docEditor.triggerForceSave = (callback) => {
       printEvent('triggerForceSave');
-      docApi
-        .forceSave(docId)
-        .then((res) => {
-          const { data, code } = res;
-          if (code === 200 && data) {
-            console.log('force save success');
-          } else {
-            console.error('Failed force save, the result is', res);
-          }
-          callback?.(data, undefined);
+      api
+        .triggerForceSave?.()
+        .then((success) => {
+          callback?.(success, undefined);
         })
         .catch((err) => {
-          callback?.(false, undefined);
+          callback?.(false, err);
           console.error('Failed force save.', err);
         });
     };
 
     docEditor.triggerKickout = (userIds, callback) => {
       printEvent('triggerKickout');
-      docApi
-        .kickout(docId, userIds)
-        .then((res) => {
-          const { code, data } = res;
-          if (code === 200 && data) {
-            console.log('kickout success');
-          } else {
-            console.error('Failed kickout, the result is', res);
-          }
-          callback?.(data, undefined);
+      api
+        .triggerKickout?.(userIds)
+        .then((success) => {
+          callback?.(success, undefined);
         })
         .catch((err) => {
           console.error('Failed kickout.', err);
@@ -225,16 +166,10 @@ const triggerDocumentReady = () => {
 
     docEditor.triggerKickoutOthers = (callback) => {
       printEvent('triggerKickoutOthers');
-      docApi
-        .kickoutAll(docId)
-        .then((res) => {
-          const { code, data } = res;
-          if (code === 200 && data) {
-            console.log('kickout others success');
-          } else {
-            console.error('Failed kickout others, the result is', res);
-          }
-          callback?.(data, undefined);
+      api
+        .triggerKickoutOthers?.()
+        .then((success) => {
+          callback?.(success, undefined);
         })
         .catch((err) => {
           console.error('Failed kickout others.', err);
@@ -244,16 +179,10 @@ const triggerDocumentReady = () => {
 
     docEditor.triggerKickoutAll = (callback) => {
       printEvent('triggerKickoutAll');
-      docApi
-        .kickoutAll(docId)
-        .then((res) => {
-          const { code, data } = res;
-          if (code === 200 && data) {
-            console.log('kickout all success');
-          } else {
-            console.error('Failed kickout all, the result is', res);
-          }
-          callback?.(data, undefined);
+      api
+        .triggerKickoutAll?.()
+        .then((success) => {
+          callback?.(success, undefined);
         })
         .catch((err) => {
           console.error('Failed kickout all.', err);
@@ -263,15 +192,9 @@ const triggerDocumentReady = () => {
 
     docEditor.onlineDocUser = (callback) => {
       printEvent('onlineDocUser');
-      docApi
-        .getOnlineDocUser(docId)
-        .then((res) => {
-          const { code, data } = res;
-          if (code === 200) {
-            console.log('get online doc user success');
-          } else {
-            console.error('Failed get online doc user , the result is', res);
-          }
+      api
+        .triggerOnlineDocUser?.()
+        .then((data) => {
           callback?.(data || [], undefined);
         })
         .catch((err) => {
@@ -350,18 +273,14 @@ const triggerRequestHistory = (e: Record<string, any>) => {
 const triggerRequestRestore = (e: Record<string, any>) => {
   printEvent('onRequestRestore', e);
   const { version } = e.data;
-  docApi
-    .restore(docId, version)
-    .then((res) => {
-      const { code, message } = res;
-      if (code === 200) {
-        // load history
+  api
+    .triggerRestore?.(version)
+    .then((success) => {
+      if (success) {
         loadHistoryList();
-      } else {
-        notify({ type: 'error', text: message });
       }
     })
-    .catch((err) => {
+    .catch((err: Error) => {
       console.error('Failed restore document version', err);
     })
     .finally(() => {

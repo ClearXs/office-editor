@@ -1,48 +1,45 @@
-import { IEditor } from './model/config';
+import { Mentions } from './model/mention';
+import { DocConfig, IEditor } from './model/config';
 
-export type EditorAction =
-  | 'edit'
-  | 'review'
-  | 'view'
-  | 'embedded'
-  | 'filter'
-  | 'comment'
-  | 'chat'
-  | 'fillForms'
-  | 'blockcontent';
-
-export type EditorType = 'desktop' | 'mobile' | 'embedded';
-
-export type Config = {
-  logo?: Logo;
-  // 定义插件是否将启动并可用。默认值是true。
-  plugins?: boolean;
-  // 定义将编辑器嵌入网页的模式。由于未捕获焦点，嵌入值在加载编辑器框架时会禁用滚动到编辑器框架。 默认为空
-  integrationMode?: 'embed';
-  // 定义加载编辑器时是否自动打开或关闭拼写检查器。默认为true
-  spellcheck?: boolean;
-  // 定义标尺和对话框中使用的测量单位。
-  // cm: centimeters
-  // pt: points
-  // inch: inches
-  // 默认取cm
-  unit?: 'cm' | 'pt' | 'inch';
-  // 定义在首次加载时是否显示或隐藏注释面板.默认值为 false。此参数仅适用于演示文稿编辑器。
-  hideNotes?: boolean;
-  // 定义以百分比为单位的文档显示缩放值,默认值为100
-  zoom?: number;
+export type DocumentEditorConfig = {
+  model: DocConfig;
+  fileHistory: string[];
+  documentServerUrl: string;
+  docserviceApiUrl: string;
+  dataInsertImage: string;
+  dataCompareFile: string;
+  dataMailMergeRecipients: string;
+  usersForMentions: Mentions[];
 };
 
-export type Logo = {
-  // 图像地址
-  image?: string;
-  // 深色主题地址
-  imageDark?: string;
-  //
-  imageEmbedded?: string;
-  // 点击图片时挑战的地址
-  url?: string;
+export type OnlineDocUser = {
+  /**
+   * 用户id
+   */
+  userId: string;
+
+  /**
+   * 用户名称
+   */
+  userName: string;
+
+  /**
+   * 文档key
+   */
+  docKey: string;
 };
+
+export interface IEditorApi {
+  loadHistoryList?: () => Promise<Record<string, any>>;
+  loadHistoryData?: (version: number) => Promise<Record<string, any>>;
+  triggerForceSave?: () => Promise<boolean>;
+  triggerKickout?: (userIds: string[]) => Promise<boolean>;
+  triggerKickoutOthers?: () => Promise<boolean>;
+  triggerKickoutAll?: () => Promise<boolean>;
+  triggerOnlineDocUser?: () => Promise<OnlineDocUser[]>;
+  triggerRestore?: (version: number) => Promise<boolean>;
+  triggerRename?: (newfilename: string) => Promise<boolean>;
+}
 
 /**
  * 文档办公编辑器参数，组装自onlyoffice
@@ -50,24 +47,24 @@ export type Logo = {
  */
 export type IOfficeEditorProps = {
   /**
-   * 文档唯一ID
+   * 编辑器唯一id
    */
-  docId: string;
+  id: string;
+
+  /**
+   * 编辑器配置
+   */
+  config: DocumentEditorConfig;
+
+  /**
+   * 提供给编辑器外部文档相关的api
+   */
+  api: IEditorApi;
 
   /**
    * 定义浏览器窗口中的文档高度。
    */
   height?: string;
-
-  /**
-   * 编辑器操作，默认为edit
-   */
-  action?: EditorAction;
-
-  /**
-   * 编辑器类型，默认为desktop
-   */
-  type?: EditorType;
 
   /**
    * 定义浏览器窗口中的文档宽度。
@@ -78,11 +75,6 @@ export type IOfficeEditorProps = {
    * 是否打印日志
    */
   printLog?: boolean;
-
-  /**
-   * 编辑器配置
-   */
-  config?: Config;
 
   /**
    * 将文档加载到文档编辑器时调用的函数。
@@ -101,8 +93,7 @@ export type IOfficeEditorProps = {
 
   /**
    * 通过 meta 命令更改文档的元信息时调用的函数。
-
-   * @param meta 
+   * @param meta
    */
   onMetaChange?: (meta: any) => void;
 

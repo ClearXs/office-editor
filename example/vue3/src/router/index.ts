@@ -1,7 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router';
 
-import Editor from '@/pages/Editor.vue'
-import Index from '@/pages/index.vue'
+import Editor from '@/pages/RouteEditor.vue';
+import Index from '@/pages/index.vue';
 
 const routes = [
   {
@@ -12,11 +12,11 @@ const routes = [
     path: '/editor/:id',
     component: Editor,
   },
-]
+];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
-})
+});
 
-export default router
+export default router;
