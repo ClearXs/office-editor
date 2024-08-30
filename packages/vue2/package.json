@@ -1,6 +1,6 @@
 {
   "name": "@office-editor/vue2",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "vue2 online office editor",
   "author": "j.x",
   "main": "dist/cjs/index.js",

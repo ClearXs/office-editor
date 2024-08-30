@@ -305,8 +305,11 @@ const triggerError = (e: Record<string, any>) => {
 
 const triggerRequestHistoryClose = (e: Record<string, any>) => {
   printEvent('onRequestHistoryClose', e);
-  document.location.reload();
-  onRequestHistoryClose?.();
+  if (onRequestHistoryClose) {
+    onRequestHistoryClose();
+  } else {
+    document.location.reload();
+  }
 };
 
 const printEvent = (

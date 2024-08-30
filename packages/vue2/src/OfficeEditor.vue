@@ -360,8 +360,11 @@ export default {
 
     triggerRequestHistoryClose(e) {
       this.printEvent('onRequestHistoryClose', e);
-      document.location.reload();
-      this.onRequestHistoryClose?.();
+      if (this.onRequestHistoryClose) {
+        this.onRequestHistoryClose();
+      } else {
+        document.location.reload();
+      }
     },
 
     printEvent(event, ...args) {

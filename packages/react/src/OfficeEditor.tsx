@@ -227,8 +227,11 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
 
   const triggerRequestHistoryClose = (e: Record<string, any>) => {
     printEvent('onRequestHistoryClose', e);
-    document.location.reload();
-    onRequestHistoryClose?.();
+    if (onRequestHistoryClose) {
+      onRequestHistoryClose();
+    } else {
+      document.location.reload();
+    }
   };
 
   const triggerLoadComponentError = (

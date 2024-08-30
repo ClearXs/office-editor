@@ -1,6 +1,6 @@
 {
   "name": "@office-editor/react",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "react online office editor",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
