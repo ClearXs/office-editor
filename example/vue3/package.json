@@ -15,7 +15,7 @@
     "type-check": "vue-tsc --build --force"
   },
   "dependencies": {
-    "@office-editor/vue3": "workspace:^",
+    "@clearx/office-editor-vue3": "workspace:^",
     "@unhead/vue": "1.9.14",
     "naive-ui": "^2.39.0",
     "pinia": "2.1.7",

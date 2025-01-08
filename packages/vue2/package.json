@@ -1,5 +1,5 @@
 {
-  "name": "@office-editor/vue2",
+  "name": "@clearx/office-editor-vue2",
   "version": "0.2.1",
   "description": "vue2 online office editor",
   "author": "j.x",
@@ -24,7 +24,6 @@
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/js-cookie": "^3.0.6",
     "babel-preset-vue": "^2.0.2",
@@ -41,6 +40,6 @@
     "vue": "^2.6.10"
   },
   "publishConfig": {
-    "registry": "https://packages.aliyun.com/636dc75af003e3b7bb5cad97/npm/npm-registry"
+    "access": "public"
   }
 }

@@ -14,7 +14,7 @@
     "@ant-design/icons": "^5.0.1",
     "@ant-design/pro-components": "^2.4.4",
     "@ant-design/pro-layout": "^7.19.0",
-    "@office-editor/react": "workspace:^",
+    "@clearx/office-editor-react": "workspace:^",
     "@onlyoffice/document-editor-react": "^1.5.1",
     "@umijs/max": "^4.1.10",
     "antd": "^5.17.0",

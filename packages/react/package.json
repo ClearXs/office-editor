@@ -1,5 +1,5 @@
 {
-  "name": "@office-editor/react",
+  "name": "@clearx/office-editor-react",
   "version": "0.3.1",
   "description": "react online office editor",
   "main": "dist/cjs/index.js",
@@ -26,7 +26,6 @@
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/js-cookie": "^3.0.6",
     "@types/react": "^17.0.0",
@@ -41,6 +40,6 @@
     "react-dom": "^16.9.0 || ^17 || ^18"
   },
   "publishConfig": {
-    "registry": "https://packages.aliyun.com/636dc75af003e3b7bb5cad97/npm/npm-registry"
+    "access": "public"
   }
 }

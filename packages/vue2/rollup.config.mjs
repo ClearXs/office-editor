@@ -1,14 +1,13 @@
-import resolve from '@rollup/plugin-node-resolve'
-import commonjs from '@rollup/plugin-commonjs'
-import typescript from 'rollup-plugin-typescript2'
-import terser from '@rollup/plugin-terser'
-import dts from 'rollup-plugin-dts'
-import peerDepsExternal from 'rollup-plugin-peer-deps-external'
-import filesize from 'rollup-plugin-filesize'
-import json from '@rollup/plugin-json'
-import vue from 'rollup-plugin-vue2'
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import typescript from 'rollup-plugin-typescript2';
+import dts from 'rollup-plugin-dts';
+import peerDepsExternal from 'rollup-plugin-peer-deps-external';
+import filesize from 'rollup-plugin-filesize';
+import json from '@rollup/plugin-json';
+import vue from 'rollup-plugin-vue2';
 
-const packageJson = require('./package.json')
+const packageJson = require('./package.json');
 
 export default [
   {
@@ -33,7 +32,6 @@ export default [
       }),
       commonjs(),
       typescript(),
-      terser(),
       filesize(),
       json(),
     ],
@@ -43,4 +41,4 @@ export default [
     output: [{ file: packageJson.types, format: 'es' }],
     plugins: [vue(), typescript(), dts.default()],
   },
-]
+];

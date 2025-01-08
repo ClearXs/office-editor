@@ -1,5 +1,5 @@
 {
-  "name": "@office-editor/vue3",
+  "name": "@clearx/office-editor-vue3",
   "version": "0.2.0",
   "description": "vue3 online office editor",
   "author": "j.x",
@@ -25,7 +25,6 @@
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rollup/plugin-terser": "^0.4.4",
     "@types/js-cookie": "^3.0.6",
     "@vitejs/plugin-vue": "^5.1.0",
     "rollup": "^4.19.0",
@@ -37,6 +36,6 @@
     "vue": "^3.0.0"
   },
   "publishConfig": {
-    "registry": "https://packages.aliyun.com/636dc75af003e3b7bb5cad97/npm/npm-registry"
+    "access": "public"
   }
 }
