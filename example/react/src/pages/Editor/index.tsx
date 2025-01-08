@@ -5,7 +5,7 @@ import {
   IEditor,
   IEditorApi,
   OfficeEditor,
-} from '@office-editor/react';
+} from '@clearx/office-editor-react';
 import { Button, message } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 

@@ -1,8 +1,18 @@
 {
   "name": "@clearx/office-editor-vue3",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "vue3 online office editor",
-  "author": "j.x",
+  "keywords": [
+    "vue2",
+    "vue3",
+    "react",
+    "onlyoffice"
+  ],
+  "author": "jiangw1027@gmail.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ClearXs/office-editor.git"
+  },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "universal": "dist/umd/index.js",

@@ -31,7 +31,7 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
   onDocumentStateChange,
   onDocumentBeforeDestroy,
 }) => {
-  const docEditorRef = useRef<IEditor>();
+  const docEditorRef = useRef<IEditor | undefined>(undefined);
   const [ready, setReady] = useState<boolean>(false);
 
   useEffect(() => {

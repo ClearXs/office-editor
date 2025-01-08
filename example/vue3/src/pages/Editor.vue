@@ -37,7 +37,7 @@ import {
   type DocumentEditorConfig,
   type IEditor,
   type IEditorApi,
-} from '@office-editor/vue3';
+} from '@clearx/office-editor-vue3';
 import { useMessage } from 'naive-ui';
 import { onBeforeMount, onMounted, ref } from 'vue';
 

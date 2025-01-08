@@ -31,7 +31,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { type IEditor, OfficeEditor } from '@office-editor/vue2';
+import { type IEditor, OfficeEditor } from '@clearx/office-editor-vue2';
 import useDocApi from '@/api/doc';
 import { useEditorApi } from '@/api/editor';
 
