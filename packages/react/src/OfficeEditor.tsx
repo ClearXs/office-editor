@@ -95,7 +95,7 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
         })
         .catch((err) => {
           callback?.(false, err);
-          console.error('Failed force save.', err);
+          toast.error('Failed force save.', err);
         });
     };
 
@@ -107,8 +107,8 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
           callback?.(success, undefined);
         })
         .catch((err) => {
-          console.error('Failed kickout.', err);
           callback?.(false, err);
+          toast.error('Failed kickout.', err);
         });
     };
 
@@ -120,8 +120,8 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
           callback?.(success, undefined);
         })
         .catch((err) => {
-          console.error('Failed kickout others.', err);
           callback?.(false, err);
+          toast.error('Failed kickout others.', err);
         });
     };
 
@@ -133,8 +133,8 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
           callback?.(success, undefined);
         })
         .catch((err) => {
-          console.error('Failed kickout all.', err);
           callback?.(false, err);
+          toast.error('Failed kickout all.', err);
         });
     };
 
@@ -146,8 +146,8 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
           callback?.(data || [], undefined);
         })
         .catch((err) => {
-          console.error('Failed get online doc user .', err);
           callback?.([], err);
+          toast.error('Failed get online doc user.', err);
         });
     };
 
@@ -189,7 +189,7 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
         }
       })
       .catch((err) => {
-        console.error('Failed restore document version', err);
+        toast.error('Failed restore document version.', err);
       })
       .finally(() => {
         onRequestRestore?.(e);
@@ -203,7 +203,7 @@ const OfficeEditor: React.FC<IOfficeEditorProps> = ({
       .triggerRename?.(newfilename)
       .then()
       .catch((err) => {
-        console.error('Failed rename doc', err);
+        toast.error('Failed rename doc.', err);
       })
       .finally(() => {
         onRequestRename?.(e);

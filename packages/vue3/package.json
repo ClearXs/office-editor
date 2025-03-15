@@ -1,6 +1,6 @@
 {
   "name": "@clearx/office-editor-vue3",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "vue3 online office editor",
   "keywords": [
     "vue2",
@@ -43,7 +43,8 @@
     "rollup-plugin-peer-deps-external": "^2.2.4"
   },
   "peerDependencies": {
-    "vue": "^3.0.0"
+    "vue": "^3.0.0",
+    "axios": "^1.7.0"
   },
   "publishConfig": {
     "access": "public"

@@ -29,6 +29,9 @@
         <el-button size="small" @click="$router.push(`/editor/${row.id}`)"
           >查看</el-button
         >
+        <el-button size="small" @click="$router.push(`/urleditor/${row.id}`)"
+          >查看url</el-button
+        >
         <el-button
           size="small"
           @click="
@@ -64,7 +67,7 @@
 <script lang="ts">
 import useDocApi, { Doc } from '@/api/doc';
 import Editor from './Editor.vue';
-import { type IEditor } from '@office-editor/vue2/src';
+import { type IEditor } from '@clearx/office-editor-vue2';
 import Cookies from 'js-cookie';
 import { PropType } from 'vue';
 

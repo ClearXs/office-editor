@@ -152,6 +152,16 @@ const columns = ref<DataTableColumns<Doc>>([
         h(
           NButton,
           {
+            dashed: true,
+            onClick(e) {
+              router.push(`/urleditor/${rowData.id}`);
+            },
+          },
+          { default: '查看url' }
+        ),
+        h(
+          NButton,
+          {
             type: 'error',
             dashed: true,
             onClick(e) {

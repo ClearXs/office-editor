@@ -122,6 +122,14 @@ export default () => {
         >
           下载
         </Button>,
+        <Button
+          key="2"
+          onClick={() => {
+            navigate(`/urlEditor/${record.id}`);
+          }}
+        >
+          查看url
+        </Button>,
       ],
     },
   ];

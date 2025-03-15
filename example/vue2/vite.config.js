@@ -32,6 +32,13 @@ const config = defineConfig({
           return path.replace('/api', '');
         },
       },
+      '/office-api': {
+        target: 'http://localhost:8700',
+        changeOrigin: true,
+        rewrite(path) {
+          return path.replace('/office-api', '');
+        },
+      },
     },
   },
 });

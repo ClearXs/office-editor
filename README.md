@@ -14,8 +14,11 @@
 - vue3
 - react
 
-编辑器的目标主要是封装[onlyoffice](https://www.onlyoffice.com/)提供的编辑器，并且和对应的后端作交互，所以里面包含的接口的请求，
-**在开发的时候，需要添加以下的代理来与后端服务进行交互：**
+编辑器的目标主要是封装[onlyoffice](https://www.onlyoffice.com/)。提供更多可选性的属性
+
+该编辑器内部提供两种组件用来提供**在线文档**的数据来源，即需要实现[IEditorApi](#IEditorApi)
+
+- [DocEditor](#IDocEditorProps) 内置了与后端交互的 API 使用的接口是 [office-service](https://github.com/ClearXs/office-service) 提供。 如果存在跨域的话需要配置 nginx
 
 ```nginx configuration
 '/api': {
@@ -23,6 +26,8 @@
     changeOrigin: true
 }
 ```
+
+- [OfficeEditor](#IOfficeEditorProps) 则需要用户提供相关的 API 接口来使用
 
 # vue2
 
@@ -34,72 +39,257 @@
 npm install @clearx/office-editor-vue2@latest
 ```
 
+更详细的示例可以从 https://github.com/ClearXs/office-editor/tree/master/example/vue2 查看
+
+### OfficeEditor
+
 其中`OfficeEditor` 为模块包导出的组件，安需要引入自项目中，值得注意的是他在浏览器下的大小是默认的，需要在外层添加来控制他的大小
 
-```tsx
+```vue
 <template>
-    <div class="w-[100vw] h-[100vh]">
-        <div class="flex gap-2 absolute">
-            <el-button size="small"
-            @click="editor?.triggerKickout?.(['1'])"
-            >踢出
-        </el-button
-        >
-        <el-button size="small"
-        @click="editor?.triggerKickoutAll?.()"
-        >踢出所有人
-    </el-button
-    >
-    <el-button size="small"
-    @click="editor?.triggerKickoutOthers?.()"
-    >踢出其他人</el-button
->
-<el-button size="small" @click = "editor?.triggerForceSave?.()"
-    > 强制保存 < /el-button
-    >
-    < el - button
-size = "small"
-@click
-= "onlineDocUser" > 在线用户 < /el-button>
-</div>
-<office-editor
-      :docId = "$route.params.id"
-printLog
-    :onDocumentReady = "onDocumentReady"
-:
-onDocumentBeforeDestroy = "onDocumentBeforeDestroy"
-    > < /office-editor>
-</div>
+  <div
+    class="w-[100vw] h-[100vh]"
+    v-if="docId !== undefined && config !== undefined"
+  >
+    <div class="flex gap-2 absolute">
+      <el-button size="small" @click="editor?.triggerKickout?.(['1'])"
+        >踢出</el-button
+      >
+      <el-button size="small" @click="editor?.triggerKickoutAll?.()"
+        >踢出所有人</el-button
+      >
+      <el-button size="small" @click="editor?.triggerKickoutOthers?.()"
+        >踢出其他人</el-button
+      >
+      <el-button size="small" @click="editor?.triggerForceSave?.()"
+        >强制保存</el-button
+      >
+      <el-button size="small" @click="onlineDocUser">在线用户</el-button>
+    </div>
+    <office-editor
+      :id="docId"
+      :config="config"
+      :api="internalApi"
+      printLog
+      :onDocumentReady="onDocumentReady"
+      :onDocumentBeforeDestroy="onDocumentBeforeDestroy"
+    ></office-editor>
+  </div>
 </template>
 
 <script lang="ts">
-    import {defineComponent, PropType} from 'vue'
-    import {type IEditor, OfficeEditor} from '@office-editor/vue2'
+import { defineComponent } from 'vue';
+import { type IEditor, OfficeEditor } from '@clearx/office-editor-vue2';
+import useDocApi from '@/api/doc';
+import { useEditorApi } from '@/api/editor';
 
-    export default defineComponent({
-    components: {OfficeEditor},
-    data() {
+const docApi = useDocApi();
+const editorApi = useEditorApi();
+
+export default defineComponent({
+  name: 'Editor',
+  components: { OfficeEditor },
+  props: {
+    docId: {
+      type: String,
+      required: true,
+    },
+  },
+  data() {
     return {
-    editor: Object as PropType<IEditor>,
-}
-},
-
-    methods: {
+      config: undefined,
+      editor: {},
+      internalApi: undefined,
+    };
+  },
+  beforeMount() {
+    this.internalApi = {
+      loadHistoryList: () => {
+        return docApi.getHistory(this.docId).then((res) => {
+          const { code, data, message } = res;
+          if (code === 200) {
+            return Promise.resolve(data);
+          } else {
+            return Promise.reject(new Error(message));
+          }
+        });
+      },
+      loadHistoryData: (version: number) => {
+        docApi.getHistoryData(this.docId, version).then((res) => {
+          const { code, data, message } = res;
+          if (code === 200) {
+            return Promise.resolve(data);
+          } else {
+            return Promise.reject(new Error(message));
+          }
+        });
+      },
+      triggerForceSave: () => {
+        return docApi.forceSave(this.docId).then((res) => {
+          const { data, code, message } = res;
+          if (code === 200 && data) {
+            return Promise.resolve(true);
+          } else {
+            return Promise.reject(message);
+          }
+        });
+      },
+      triggerKickout: (userIds: string[]) => {
+        return docApi.kickout(this.docId, userIds).then((res) => {
+          const { code, data, message } = res;
+          if (code === 200 && data) {
+            return Promise.resolve(true);
+          } else {
+            return Promise.reject(new Error(message));
+          }
+        });
+      },
+      triggerKickoutOthers: () => {
+        return docApi.kickoutOthers(this.docId).then((res) => {
+          const { code, data, message } = res;
+          if (code === 200 && data) {
+            return Promise.resolve(true);
+          } else {
+            return Promise.reject(new Error(message));
+          }
+        });
+      },
+      triggerKickoutAll: () => {
+        return docApi.kickoutAll(this.docId).then((res) => {
+          const { code, data, message } = res;
+          if (code === 200 && data) {
+            return Promise.resolve(true);
+          } else {
+            return Promise.reject(new Error(message));
+          }
+        });
+      },
+      triggerOnlineDocUser: () => {
+        return docApi.getOnlineDocUser(this.docId).then((res) => {
+          const { code, data, message } = res;
+          if (code === 200) {
+            return Promise.resolve(data);
+          } else {
+            return Promise.reject(new Error(message));
+          }
+        });
+      },
+      triggerRestore: (version: number) => {
+        return docApi.restore(this.docId, version).then((res) => {
+          const { code, message } = res;
+          if (code === 200) {
+            return Promise.resolve(true);
+          } else {
+            return Promise.reject(message);
+          }
+        });
+      },
+      triggerRename: (newfilename: string) => {
+        return docApi.rename(this.docId, { newfilename }).then((res) => {
+          const { code, message } = res;
+          if (code === 200) {
+            return Promise.resolve(true);
+          } else {
+            return Promise.reject(message);
+          }
+        });
+      },
+    };
+  },
+  mounted() {
+    editorApi.editor(this.docId).then((res) => {
+      const { code, data, message } = res;
+      if (code === 200) {
+        this.config = data;
+      } else {
+        this.$message.error(message);
+      }
+    });
+  },
+  methods: {
     onDocumentReady(editor: IEditor) {
-    this.$message('onDocumentReady')
-    this.editor = editor
-},
+      this.$message('onDocumentReady');
+      this.editor = editor;
+    },
     onDocumentBeforeDestroy() {
-    this.$message('onDocumentBeforeDestroy')
-    this.editor = undefined
-},
+      this.$message('onDocumentBeforeDestroy');
+      this.editor = undefined;
+    },
     onlineDocUser() {
-    this.editor?.onlineDocUser?.((user) => {
-    this.$message(JSON.stringify(user))
-})
-},
-},
-})
+      this.editor?.onlineDocUser?.((user) => {
+        this.$message(JSON.stringify(user));
+      });
+    },
+  },
+});
+</script>
+```
+
+### DocEditor
+
+```vue
+<template>
+  <div class="w-[100vw] h-[100vh]">
+    <div class="flex gap-2 absolute">
+      <el-button size="small" @click="editor?.triggerKickout?.(['1'])"
+        >踢出</el-button
+      >
+      <el-button size="small" @click="editor?.triggerKickoutAll?.()"
+        >踢出所有人</el-button
+      >
+      <el-button size="small" @click="editor?.triggerKickoutOthers?.()"
+        >踢出其他人</el-button
+      >
+      <el-button size="small" @click="editor?.triggerForceSave?.()"
+        >强制保存</el-button
+      >
+      <el-button size="small" @click="onlineDocUser">在线用户</el-button>
+    </div>
+    <doc-editor
+      :id="$route.params.id"
+      docUrl="/office-api"
+      :user="user"
+      cipher="allio"
+      width="100%"
+      heigh="100%"
+      printLog
+      :onDocumentReady="onDocumentReady"
+      :onDocumentBeforeDestroy="onDocumentBeforeDestroy"
+    ></doc-editor>
+  </div>
+</template>
+
+<script lang="ts">
+import { type IEditor, DocEditor } from '@clearx/office-editor-vue2';
+
+export default {
+  name: 'url-editor',
+  components: { DocEditor },
+  data() {
+    return {
+      editor: {},
+      user: {
+        userId: '1',
+        username: 'zhangsan',
+      },
+    };
+  },
+  methods: {
+    onDocumentReady(editor: IEditor) {
+      this.$message('onDocumentReady');
+      this.editor = editor;
+    },
+    onDocumentBeforeDestroy() {
+      this.$message('onDocumentBeforeDestroy');
+      this.editor = undefined;
+    },
+    onlineDocUser() {
+      this.editor?.onlineDocUser?.((user) => {
+        this.$message(JSON.stringify(user));
+      });
+    },
+  },
+};
 </script>
 ```
 
@@ -111,66 +301,245 @@ onDocumentBeforeDestroy = "onDocumentBeforeDestroy"
 npm install @clearx/office-editor-vue3@latest
 ```
 
-和 vue2 写法类似，就不赘述。
+更详细的示例可以从 https://github.com/ClearXs/office-editor/tree/master/example/vue3 查看
 
-```tsx
+### OfficeEditor
+
+```vue
 <template>
-    <div class="w-[100vw] h-[100vh]">
-        <n-space class="absolute">
-            <n-button
-            @click="editorRef?.triggerKickout?.(['1'])" type="primary">
-            提出
-        </n-button>
-        <n-button
-        @click="editorRef?.triggerKickoutAll()" type="primary">
-        提出所有人
-    </n-button>
-    <n-button
-    @click="editorRef?.triggerKickoutOthers()" type="primary">
-    提出其他人
-</n-button>
-<n-button @click = "editorRef?.triggerForceSave()"
-type = "primary" >
-    强制保存
-    < /n-button>
-<n-button @click = "onlineDocUser"
-type = "primary" > 在线用户 < /n-button>
-</n-space>
-<office-editor
-      :docId = "$route.params.id"
-height = "100%"
-width = "100%"
-:
-onDocumentReady = "onDocumentReady"
-:
-onDocumentBeforeDestroy = "onDocumentBeforeDestroy"
+  <div
+    class="w-[100vw] h-[100vh]"
+    v-if="docId !== undefined && configRef !== undefined"
+  >
+    <n-space class="absolute">
+      <n-button @click="editorRef?.triggerKickout?.(['1'])" type="primary">
+        踢出
+      </n-button>
+      <n-button @click="editorRef?.triggerKickoutAll()" type="primary">
+        踢出所有人
+      </n-button>
+      <n-button @click="editorRef?.triggerKickoutOthers()" type="primary">
+        踢出其他人
+      </n-button>
+      <n-button @click="editorRef?.triggerForceSave()" type="primary">
+        强制保存
+      </n-button>
+      <n-button @click="onlineDocUser" type="primary"> 在线用户 </n-button>
+    </n-space>
+    <office-editor
+      :id="docId"
+      :api="internalApiRef"
+      :config="configRef"
+      :onDocumentReady="onDocumentReady"
+      :onDocumentBeforeDestroy="onDocumentBeforeDestroy"
     >
-    < /office-editor>
-</div>
+    </office-editor>
+  </div>
 </template>
 
 <script lang="ts" setup>
-    import {OfficeEditor, type IEditor} from '@office-editor/vue3'
-    import {useMessage} from 'naive-ui'
-    import {ref} from 'vue'
+import useDocApi from '@/api/doc';
+import { useEditorApi } from '@/api/editor';
+import {
+  OfficeEditor,
+  type DocumentEditorConfig,
+  type IEditor,
+  type IEditorApi,
+} from '@clearx/office-editor-vue3';
+import { useMessage } from 'naive-ui';
+import { onBeforeMount, onMounted, ref } from 'vue';
 
-    const message = useMessage()
+const props = withDefaults(defineProps<{ docId: string }>(), {
+  docId: undefined,
+});
 
-    const editorRef = ref<IEditor | undefined>()
+const docApi = useDocApi();
+const editorApi = useEditorApi();
 
-    const onDocumentBeforeDestroy = () => {
-    message.info('onDocumentBeforeDestroy')
-}
+const messageApi = useMessage();
+const editorRef = ref<IEditor | undefined>();
+const configRef = ref<DocumentEditorConfig>();
+const internalApiRef = ref<IEditorApi>();
 
-    const onDocumentReady = (editor: IEditor) => {
-    editorRef.value = editor
-}
+onBeforeMount(() => {
+  internalApiRef.value = {
+    loadHistoryList() {
+      return docApi.getHistory(props.docId).then((res) => {
+        const { code, data, message } = res;
+        if (code === 200) {
+          return Promise.resolve(data);
+        } else {
+          return Promise.reject(new Error(message));
+        }
+      });
+    },
+    loadHistoryData(version: number) {
+      docApi.getHistoryData(props.docId, version).then((res) => {
+        const { code, data, message } = res;
+        if (code === 200) {
+          return Promise.resolve(data);
+        } else {
+          return Promise.reject(new Error(message));
+        }
+      });
+    },
+    triggerForceSave() {
+      return docApi.forceSave(props.docId).then((res) => {
+        const { data, code, message } = res;
+        if (code === 200 && data) {
+          return Promise.resolve(true);
+        } else {
+          return Promise.reject(message);
+        }
+      });
+    },
+    triggerKickout(userIds) {
+      return docApi.kickout(props.docId, userIds).then((res) => {
+        const { code, data, message } = res;
+        if (code === 200 && data) {
+          return Promise.resolve(true);
+        } else {
+          return Promise.reject(new Error(message));
+        }
+      });
+    },
+    triggerKickoutOthers() {
+      return docApi.kickoutOthers(props.docId).then((res) => {
+        const { code, data, message } = res;
+        if (code === 200 && data) {
+          return Promise.resolve(true);
+        } else {
+          return Promise.reject(new Error(message));
+        }
+      });
+    },
+    triggerKickoutAll() {
+      return docApi.kickoutAll(props.docId).then((res) => {
+        const { code, data, message } = res;
+        if (code === 200 && data) {
+          return Promise.resolve(true);
+        } else {
+          return Promise.reject(new Error(message));
+        }
+      });
+    },
+    triggerOnlineDocUser() {
+      return docApi.getOnlineDocUser(props.docId).then((res) => {
+        const { code, data, message } = res;
+        if (code === 200) {
+          return Promise.resolve(data);
+        } else {
+          return Promise.reject(new Error(message));
+        }
+      });
+    },
+    triggerRestore(version) {
+      return docApi.restore(props.docId, version).then((res) => {
+        const { code, message } = res;
+        if (code === 200) {
+          return Promise.resolve(true);
+        } else {
+          return Promise.reject(message);
+        }
+      });
+    },
+    triggerRename(newfilename) {
+      return docApi.rename(props.docId, { newfilename }).then((res) => {
+        const { code, message } = res;
+        if (code === 200) {
+          return Promise.resolve(true);
+        } else {
+          return Promise.reject(message);
+        }
+      });
+    },
+  };
+});
 
-    const onlineDocUser = () => {
-    editorRef.value?.onlineDocUser?.((user) => {
-        message.info(JSON.stringify(user))
-    })
-}
+onMounted(() => {
+  editorApi.editor(props.docId).then((res) => {
+    const { code, data, message } = res;
+    if (code === 200) {
+      configRef.value = data;
+    } else {
+      messageApi.error(message);
+    }
+  });
+});
+
+const onDocumentBeforeDestroy = () => {
+  messageApi.info('onDocumentBeforeDestroy');
+};
+
+const onDocumentReady = (editor: IEditor) => {
+  editorRef.value = editor;
+};
+
+const onlineDocUser = () => {
+  editorRef.value?.onlineDocUser?.((user) => {
+    messageApi.info(JSON.stringify(user));
+  });
+};
+</script>
+```
+
+### DocEditor
+
+```vue
+<template>
+  <div class="w-[100vw] h-[100vh]">
+    <n-space class="absolute">
+      <n-button @click="editorRef?.triggerKickout?.(['1'])" type="primary">
+        踢出
+      </n-button>
+      <n-button @click="editorRef?.triggerKickoutAll()" type="primary">
+        踢出所有人
+      </n-button>
+      <n-button @click="editorRef?.triggerKickoutOthers()" type="primary">
+        踢出其他人
+      </n-button>
+      <n-button @click="editorRef?.triggerForceSave()" type="primary">
+        强制保存
+      </n-button>
+      <n-button @click="onlineDocUser" type="primary"> 在线用户 </n-button>
+    </n-space>
+    <doc-editor
+      :id="$route.params.id"
+      docUrl="/office-api"
+      :user="user"
+      cipher="allio"
+      :onDocumentReady="onDocumentReady"
+      :onDocumentBeforeDestroy="onDocumentBeforeDestroy"
+    ></doc-editor>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import {
+  DocEditor,
+  type DocUser,
+  type IEditor,
+} from '@clearx/office-editor-vue3';
+import { useMessage } from 'naive-ui';
+import { ref } from 'vue';
+
+const user = ref<DocUser>({ userId: '1', username: 'zhangsan' });
+const editorRef = ref<IEditor | undefined>();
+const messageApi = useMessage();
+
+const onDocumentBeforeDestroy = () => {
+  messageApi.info('onDocumentBeforeDestroy');
+};
+
+const onDocumentReady = (editor: IEditor) => {
+  editorRef.value = editor;
+};
+
+const onlineDocUser = () => {
+  editorRef.value?.onlineDocUser?.((user) => {
+    messageApi.info(JSON.stringify(user));
+  });
+};
 </script>
 ```
 
@@ -184,72 +553,249 @@ onDocumentBeforeDestroy = "onDocumentBeforeDestroy"
 npm install @clearx/@office-editor-react@latest
 ```
 
+更详细的示例可以从 https://github.com/ClearXs/office-editor/tree/master/example/react 查看
+
+### OfficeEditor
+
 ```tsx
-import { IEditor, OfficeEditor } from '@office-editor/react';
-import { useParams } from '@umijs/max';
-import { Button, Space } from 'antd';
-import { useEffect, useRef } from 'react';
+import useDocApi from '@/api/doc';
+import { useEditorApi } from '@/api/editor';
+import {
+  DocumentEditorConfig,
+  IEditor,
+  IEditorApi,
+  OfficeEditor,
+} from '@clearx/office-editor-react';
+import { Button, message } from 'antd';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-const Editor = () => {
-  const params = useParams<{ docId: string }>();
-  const editorRef = useRef<IEditor | undefined>();
+export type IEditorProps = {
+  docId: string;
+};
 
-  useEffect(() => {}, [params.docId]);
+const Editor: React.FC<IEditorProps> = ({ docId }) => {
+  const [messageApi, messageContextHolder] = message.useMessage();
+  const docApi = useDocApi();
+  const editorApi = useEditorApi();
+
+  const [config, setConfig] = useState<DocumentEditorConfig>();
+
+  const editorRef = useRef<IEditor>();
+
+  useEffect(() => {
+    editorApi.editor(docId).then((res) => {
+      const { code, data, message } = res;
+      if (code === 200) {
+        setConfig(data);
+      } else {
+        messageApi.error(message);
+      }
+    });
+  }, [docId]);
+
+  const internalApi: IEditorApi = useMemo(() => {
+    return {
+      loadHistoryList() {
+        return docApi.getHistory(docId).then((res) => {
+          const { code, data, message } = res;
+          if (code === 200) {
+            return Promise.resolve(data);
+          } else {
+            return Promise.reject(new Error(message));
+          }
+        });
+      },
+      loadHistoryData(version) {
+        docApi.getHistoryData(docId, version).then((res) => {
+          const { code, data, message } = res;
+          if (code === 200) {
+            return Promise.resolve(data);
+          } else {
+            return Promise.reject(new Error(message));
+          }
+        });
+      },
+      triggerForceSave() {
+        return docApi.forceSave(docId).then((res) => {
+          const { data, code, message } = res;
+          if (code === 200 && data) {
+            return Promise.resolve(true);
+          } else {
+            return Promise.reject(message);
+          }
+        });
+      },
+      triggerKickout(userIds) {
+        return docApi.kickout(docId, userIds).then((res) => {
+          const { code, data, message } = res;
+          if (code === 200 && data) {
+            return Promise.resolve(true);
+          } else {
+            return Promise.reject(new Error(message));
+          }
+        });
+      },
+      triggerKickoutOthers() {
+        return docApi.kickoutOthers(docId).then((res) => {
+          const { code, data, message } = res;
+          if (code === 200 && data) {
+            return Promise.resolve(true);
+          } else {
+            return Promise.reject(new Error(message));
+          }
+        });
+      },
+      triggerKickoutAll() {
+        return docApi.kickoutAll(docId).then((res) => {
+          const { code, data, message } = res;
+          if (code === 200 && data) {
+            return Promise.resolve(true);
+          } else {
+            return Promise.reject(new Error(message));
+          }
+        });
+      },
+      triggerOnlineDocUser() {
+        return docApi.getOnlineDocUser(docId).then((res) => {
+          const { code, data, message } = res;
+          if (code === 200) {
+            return Promise.resolve(data);
+          } else {
+            return Promise.reject(new Error(message));
+          }
+        });
+      },
+      triggerRestore(version) {
+        return docApi.restore(docId, version).then((res) => {
+          const { code, message } = res;
+          if (code === 200) {
+            return Promise.resolve(true);
+          } else {
+            return Promise.reject(message);
+          }
+        });
+      },
+      triggerRename(newfilename) {
+        return docApi.rename(docId, { newfilename }).then((res) => {
+          const { code, message } = res;
+          if (code === 200) {
+            return Promise.resolve(true);
+          } else {
+            return Promise.reject(message);
+          }
+        });
+      },
+    };
+  }, [docId]);
 
   return (
-    <div style={{ height: '100vh', width: '100vw' }}>
-      <Space style={{ position: 'absolute' }}>
-        <Button
-          onClick={() => {
-            editorRef.current?.triggerKickout(['1']);
-          }}
-        >
-          踢出
-        </Button>
-        <Button
-          onClick={() => {
-            editorRef.current?.triggerKickoutAll();
-          }}
-        >
-          踢出所有人
-        </Button>
-        <Button
-          onClick={() => {
-            editorRef.current?.triggerKickoutOthers();
-          }}
-        >
-          踢出其他人
-        </Button>
-        <Button
-          onClick={() => {
-            editorRef.current?.triggerForceSave();
-          }}
-        >
-          强制保存
-        </Button>
-        <Button
-          onClick={() => {
-            editorRef.current?.onlineDocUser((user) => {
-              console.log(user);
-            });
-          }}
-        >
-          在线用户
-        </Button>
-      </Space>
-      <OfficeEditor
-        docId={params.docId as string}
-        printLog={true}
-        onDocumentReady={(editor) => (editorRef.current = editor)}
-        onDocumentBeforeDestroy={() => {
-          console.log(this);
-        }}
-      />
-    </div>
+    <>
+      {messageContextHolder}
+      {config && (
+        <div style={{ height: '100vh', width: '100vw' }}>
+          <OfficeEditor
+            id={docId}
+            config={config}
+            api={internalApi}
+            printLog={true}
+            onDocumentReady={(editor) => {
+              editorRef.current = editor;
+            }}
+            onDocumentBeforeDestroy={() => {
+              console.log(this);
+            }}
+          />
+
+          <div
+            style={{ display: 'flex', position: 'absolute', top: 0, gap: 10 }}
+          >
+            <Button onClick={() => editorRef.current?.triggerKickout?.(['1'])}>
+              踢出
+            </Button>
+            <Button onClick={() => editorRef.current?.triggerKickoutAll?.()}>
+              踢出所有人
+            </Button>
+            <Button onClick={() => editorRef.current?.triggerKickoutOthers?.()}>
+              踢出其他人
+            </Button>
+            <Button onClick={() => editorRef.current?.triggerForceSave?.()}>
+              强制保存
+            </Button>
+            <Button
+              onClick={() =>
+                editorRef.current?.onlineDocUser?.((users) => {
+                  message.info(JSON.stringify(users));
+                })
+              }
+            >
+              在线用户
+            </Button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
 export default Editor;
+```
+
+### DocEditor
+
+```tsx
+import { DocEditor, IEditor } from '@clearx/office-editor-react';
+import { useParams } from '@umijs/max';
+import { Button, message } from 'antd';
+import { useRef } from 'react';
+
+const UrlEditor: React.FC = ({}) => {
+  const params = useParams<{ docId: string }>();
+  const editorRef = useRef<IEditor>();
+
+  return (
+    <div style={{ height: '100vh', width: '100vw' }}>
+      <DocEditor
+        id={params.docId!}
+        docUrl='/office-api'
+        user={{ userId: '1', username: 'zhangsan' }}
+        cipher='allio'
+        printLog={true}
+        onDocumentReady={(editor) => {
+          editorRef.current = editor;
+        }}
+        onDocumentBeforeDestroy={() => {
+          console.log(this);
+        }}
+      />
+
+      <div style={{ display: 'flex', position: 'absolute', top: 0, gap: 10 }}>
+        <Button onClick={() => editorRef.current?.triggerKickout?.(['1'])}>
+          踢出
+        </Button>
+        <Button onClick={() => editorRef.current?.triggerKickoutAll?.()}>
+          踢出所有人
+        </Button>
+        <Button onClick={() => editorRef.current?.triggerKickoutOthers?.()}>
+          踢出其他人
+        </Button>
+        <Button onClick={() => editorRef.current?.triggerForceSave?.()}>
+          强制保存
+        </Button>
+        <Button
+          onClick={() =>
+            editorRef.current?.onlineDocUser?.((users) => {
+              message.info(JSON.stringify(users));
+            })
+          }
+        >
+          在线用户
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default UrlEditor;
 ```
 
 # API
@@ -365,6 +911,16 @@ type EditorType = 'desktop' | 'mobile' | 'embedded';
 | `triggerForceSave`     | 强制保存文档                                                           | `(     callback?: (isSuccess: boolean, err?: Error) => void   ) => void`               |
 | `onlineDocUser`        | 获取当前正在编辑在线的用户                                             | `(     callback?: (docUserList: OnlineDocUser[], err?: Error) => void   ) => void`     |
 
+## IDocEditorProps
+
+其他属性与 [IOfficeEditorProps](#IOfficeEditorProps) 类型，下面就不列举
+
+| 属性     | required | 说明               | 类型    | 默认值 |     |
+| -------- | -------- | ------------------ | ------- | ------ | --- |
+| `docUrl` | true     | 文档服务器地址     | string  |        |     |
+| `user`   | true     | 文档用户信息       | DocUser |        |     |
+| `cipher` | true     | 文档服务器加密信息 | string  |        |     |
+
 ## `OnlineDocUser`
 
 | 值         | 说明     |
@@ -373,11 +929,32 @@ type EditorType = 'desktop' | 'mobile' | 'embedded';
 | `userName` | 用户名称 |
 | `docKey`   | 文档 key |
 
+## DocUser
+
+| 属性       | required | 说明     | 类型   | 默认值 |
+| ---------- | -------- | -------- | ------ | ------ |
+| `userId`   | true     | 用户 ID  | string |        |
+| `username` | true     | 用户名   | string |        |
+| `nickname` | false    | 昵称     | string |        |
+| `avatar`   | false    | 用户头像 | string |        |
+
+## IEditorApi
+
+| 属性                   | required | 说明                 | 类型                                              | 默认值 |
+| ---------------------- | -------- | -------------------- | ------------------------------------------------- | ------ |
+| `loadHistoryList`      | false    | 加载历史列表         | () => Promise<Record<string, any>>                |        |
+| `loadHistoryData`      | false    | 加载指定版本历史数据 | (version: number) => Promise<Record<string, any>> |        |
+| `triggerForceSave`     | false    | 强制保存             | () => Promise<boolean>                            |        |
+| `triggerKickout`       | false    | 移除指定用户         | (userIds: string[]) => Promise<boolean>           |        |
+| `triggerKickoutOthers` | false    | 移除其他用户         | () => Promise<boolean>                            |        |
+| `triggerKickoutAll`    | false    | 移除所有用户         | () => Promise<boolean>                            |        |
+| `triggerOnlineDocUser` | false    | 获取在线文档用户     | () => Promise<OnlineDocUser[]>                    |        |
+| `triggerRestore`       | false    | 恢复到指定版本       | (version: number) => Promise<boolean>             |        |
+| `triggerRename`        | false    | 重命名文档           | (newfilename: string) => Promise<boolean>         |        |
+
 # 版本历史
 
-## @office-editor/vue2
-
-最新版本为**0.1.1**
+## @clearx/office-editor-vue2
 
 ### 0.1.0
 
@@ -387,9 +964,11 @@ type EditorType = 'desktop' | 'mobile' | 'embedded';
 
 修改部分属性说明
 
-## @office-editor/vue3
+### 0.2.3
 
-最新版本为**0.1.1**
+- 新增 `DocEditor` 组件
+
+## @clearx/office-editor-vue3
 
 ### 0.1.0
 
@@ -399,10 +978,16 @@ type EditorType = 'desktop' | 'mobile' | 'embedded';
 
 修改部分属性说明
 
-## @office-editor/react
+### 0.2.2
 
-最新版本为**0.2.3**
+- 新增 `DocEditor` 组件
+
+## @clearx/office-editor-react
 
 ### 0.2.3
 
 修改部分属性说明
+
+### 0.3.3
+
+- 新增 `DocEditor` 组件

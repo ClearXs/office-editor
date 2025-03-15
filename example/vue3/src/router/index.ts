@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import Editor from '@/pages/RouteEditor.vue';
 import Index from '@/pages/index.vue';
+import UrlEditor from '@/pages/UrlEditor.vue';
 
 const routes = [
   {
@@ -11,6 +12,10 @@ const routes = [
   {
     path: '/editor/:id',
     component: Editor,
+  },
+  {
+    path: '/urleditor/:id',
+    component: UrlEditor,
   },
 ];
 

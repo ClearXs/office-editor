@@ -4,6 +4,7 @@ import VueRouter from 'vue-router';
 import Home from '@/views/Home.vue';
 import NotFound from '@/views/NotFound.vue';
 import Editor from '@/views/RouteEditor.vue';
+import UrlEditor from '@/views/UrlEditor.vue';
 
 Vue.use(VueRouter);
 
@@ -21,6 +22,11 @@ export const routes: RouteConfig[] = [
     path: '/editor/:id',
     name: 'Editor',
     component: Editor,
+  },
+  {
+    path: '/urleditor/:id',
+    name: 'UrlEditor',
+    component: UrlEditor,
   },
   {
     path: '/:path(.*)',

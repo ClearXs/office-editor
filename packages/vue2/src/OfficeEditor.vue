@@ -128,7 +128,6 @@ export default {
       docEditor: undefined,
     };
   },
-
   mounted() {
     if (
       this.config === undefined ||

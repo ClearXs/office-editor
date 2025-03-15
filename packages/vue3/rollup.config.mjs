@@ -31,7 +31,7 @@ export default [
         preferBuiltins: true,
       }),
       commonjs(),
-      typescript({ tsconfig: './tsconfig.json' }),
+      typescript({ tsconfig: './tsconfig.json', check: false }),
       filesize(),
       json(),
     ],

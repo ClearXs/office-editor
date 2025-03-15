@@ -19,6 +19,11 @@ export default defineConfig({
       changeOrigin: true,
       pathRewrite: { '^/api': '' },
     },
+    '/office-api': {
+      target: 'http://localhost:8700',
+      changeOrigin: true,
+      pathRewrite: { '^/office-api': '' },
+    },
   },
   routes: [
     {
@@ -29,6 +34,12 @@ export default defineConfig({
       name: ' Editor',
       path: '/editor/:docId',
       component: './ParamsEditor',
+      layout: false,
+    },
+    {
+      name: 'UrlEditor',
+      path: '/urlEditor/:docId',
+      component: './UrlEditor',
       layout: false,
     },
     {

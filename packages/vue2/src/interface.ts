@@ -12,6 +12,17 @@ export type DocumentEditorConfig = {
   usersForMentions: Mentions[];
 };
 
+export type DocUser = {
+  // user id
+  userId: string;
+  // user name
+  username: string;
+  // nickname
+  nickname?: string;
+  // user avatar
+  avatar?: string;
+};
+
 export type OnlineDocUser = {
   /**
    * 用户id
@@ -200,4 +211,13 @@ export type IOfficeEditorProps = {
    * 当文档组件销毁前回调
    */
   onDocumentBeforeDestroy?: () => void;
+};
+
+export type IDocEditorProps = Omit<IOfficeEditorProps, 'api' | 'config'> & {
+  // document server url
+  docUrl: string;
+  // document user
+  user: DocUser;
+  // with document server cipher
+  cipher: string;
 };
